@@ -36,11 +36,11 @@ float grid(in vec2 _st, in int steps) {
     float c = 0.0;
 
     for(int i = 0; i < steps; i++) {
-      r += box(_st + vec2(0.0, -0.5 + 0.1 * float(i)), vec2(1.0, 0.005));
+      r += box(_st + vec2(0.0, -0.5 + 0.1 * float(i)), vec2(2.0, 0.005));
     }
 
     for(int i = 0; i < steps; i++) {
-      r += box(_st + vec2(-0.5 + 0.1 * float(i), 0.0), vec2(0.005, 1.0));
+      r += box(_st + vec2(-0.5 + 0.1 * float(i), 0.0), vec2(0.005, 2.0));
     }
 
     return r + c;
@@ -52,8 +52,25 @@ void main(){
 
     // Red:
     vec2 m = vec2(0.0);
+    m += vec2(max(sin(u_time * 10.0 + st.x * 10.0) * 0.05, 0.0));
+    st += m;
+    color += vec3(grid(st, 10), 0.0, 0.0);
+    st -= m;
 
-    color = vec3(grid(st, 10), 0.0, 0.0);
+    // Green:
+    m = vec2(0.0);
+    m += vec2(max(sin(u_time * 10.0 + st.x * 10.0) * 0.03, 0.0));
+    st += m;
+    color += vec3(0.0, grid(st, 10), 0.0);
+    st -= m;
+
+    // Blue:
+    m = vec2(0.0);
+    m += vec2(max(sin(u_time * 10.0 + st.x * 10.0) * 0.02, 0.0));
+    st += m;
+    color += vec3(0.0, 0.0, grid(st, 10));
+    st -= m;
+
 
     gl_FragColor = vec4(color,1.0);
 }
