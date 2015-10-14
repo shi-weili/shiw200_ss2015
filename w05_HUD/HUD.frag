@@ -52,21 +52,21 @@ void main(){
 
     // Red:
     vec2 m = vec2(0.0);
-    m += vec2(max(sin(u_time * 10.0 + st.x * 5.0) * 0.05, 0.0));
+    m += vec2(max(sin(u_time * 10.0) * sin(st.x * 2.0) * 0.05, 0.0));
     st += m;
     color += vec3(grid(st, 10), 0.0, 0.0);
     st -= m;
 
     // Green:
     m = vec2(0.0);
-    m += vec2(max(sin(u_time * 10.0 + st.x * 5.0) * 0.03, 0.0));
+    m += vec2(max(sin(u_time * 10.0) * sin(st.x * 2.0) * 0.03, 0.0));
     st += m;
     color += vec3(0.0, grid(st, 10), 0.0);
     st -= m;
 
     // Blue:
     m = vec2(0.0);
-    m += vec2(max(sin(u_time * 10.0 + st.x * 5.0) * 0.02, 0.0));
+    m += vec2(max(sin(u_time * 10.0) * sin(st.x * 2.0) * 0.02, 0.0));
     st += m;
     color += vec3(0.0, 0.0, grid(st, 10));
     st -= m;
