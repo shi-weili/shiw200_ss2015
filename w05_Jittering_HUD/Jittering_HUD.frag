@@ -50,23 +50,28 @@ void main(){
     vec2 st = gl_FragCoord.xy/u_resolution.xy;
     vec3 color = vec3(0.0);
 
+    float m1 = max(sin(st.x * 20.0 * u_time), 0.0);
+    float m2 = max(sin(st.x * 5.0 * u_time), 0.0);
+    float m3 = max(sin(u_time * 1.0), 0.0);
+    float scale = 0.05;
+
     // Red:
     vec2 m = vec2(0.0);
-    m += vec2(max(sin(u_time * 10.0) * sin(st.x * 2.0) * 0.05, 0.0));
+    m += vec2(m1 * m2 * m3 * scale * 1.0);
     st += m;
     color += vec3(grid(st, 10), 0.0, 0.0);
     st -= m;
 
     // Green:
     m = vec2(0.0);
-    m += vec2(max(sin(u_time * 10.0) * sin(st.x * 2.0) * 0.03, 0.0));
+    m += vec2(m1 * m2 * m3 * scale * 0.5);
     st += m;
     color += vec3(0.0, grid(st, 10), 0.0);
     st -= m;
 
     // Blue:
     m = vec2(0.0);
-    m += vec2(max(sin(u_time * 10.0) * sin(st.x * 2.0) * 0.02, 0.0));
+    m += vec2(m1 * m2 * m3 * scale * 0.2);
     st += m;
     color += vec3(0.0, 0.0, grid(st, 10));
     st -= m;
