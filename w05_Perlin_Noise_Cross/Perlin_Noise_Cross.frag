@@ -112,12 +112,12 @@ void main(){
     vec3 color = vec3(0.0);
 
     float noiseScale = 0.00005;
-    float noiseSpeed = 100.0;
+    float noiseSpeed = 1000.0;
         
     // Red:
     vec2 stTemp = st;
     stTemp -= vec2(0.5);
-    stTemp *= scale( vec2(sin(u_time)+1.0) + snoise(vec2(u_time * noiseSpeed + 0.0, u_time * noiseSpeed  + 1000.0)) * noiseScale);
+    stTemp *= scale( vec2(0.5) + snoise(vec2(u_time * noiseSpeed + 0.0, u_time * noiseSpeed  + 1000.0)) * noiseScale);
     stTemp *= rotate2d( (sin(u_time * 2.0) + snoise(vec2(u_time * noiseSpeed  + 2000.0, u_time * noiseSpeed  + 3000.0) * noiseScale)) * PI );
     stTemp += vec2(0.5);
     stTemp += vec2(snoise(vec2(u_time * noiseSpeed  + 4000.0, u_time * noiseSpeed  + 5000.0)) * noiseScale, snoise(vec2(u_time * noiseSpeed  + 6000.0, u_time * noiseSpeed  + 7000.0)) * noiseScale);
@@ -126,7 +126,7 @@ void main(){
     // Green:
     stTemp = st;
     stTemp -= vec2(0.5);
-    stTemp *= scale( vec2(sin(u_time)+1.0) + snoise(vec2(u_time * noiseSpeed  + 300.0, u_time * noiseSpeed  + 1300.0)) * noiseScale);
+    stTemp *= scale( vec2(0.5) + snoise(vec2(u_time * noiseSpeed  + 300.0, u_time * noiseSpeed  + 1300.0)) * noiseScale);
     stTemp *= rotate2d( (sin(u_time * 2.0) + snoise(vec2(u_time * noiseSpeed  + 2300.0, u_time * noiseSpeed  + 3300.0) * noiseScale)) * PI );
     stTemp += vec2(0.5);
     stTemp += vec2(snoise(vec2(u_time * noiseSpeed  + 4300.0, u_time * noiseSpeed  + 5300.0)) * noiseScale, snoise(vec2(u_time * noiseSpeed  + 6300.0, u_time * noiseSpeed  + 7300.0)) * noiseScale);
@@ -135,7 +135,7 @@ void main(){
     // Blue:
     stTemp = st;
     stTemp -= vec2(0.5);
-    stTemp *= scale( vec2(sin(u_time)+1.0) + snoise(vec2(u_time * noiseSpeed  + 700.0, u_time * noiseSpeed  + 1700.0)) * noiseScale);
+    stTemp *= scale( vec2(0.5) + snoise(vec2(u_time * noiseSpeed  + 700.0, u_time * noiseSpeed  + 1700.0)) * noiseScale);
     stTemp *= rotate2d( (sin(u_time * 2.0) + snoise(vec2(u_time * noiseSpeed  + 2700.0, u_time * noiseSpeed  + 3700.0) * noiseScale)) * PI );
     stTemp += vec2(0.5);
     stTemp += vec2(snoise(vec2(u_time * noiseSpeed  + 4700.0, u_time * noiseSpeed  + 5700.0)) * noiseScale, snoise(vec2(u_time * noiseSpeed  + 6700.0, u_time * noiseSpeed  + 7700.0)) * noiseScale);
