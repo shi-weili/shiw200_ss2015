@@ -148,8 +148,20 @@ vec3 blend(vec3 upperLayer, vec3 downLayer, float opacity) {
 
 }
 
-vec3 mask(vec3 upperLayer, vec3 downLayer, vec3 mask) {
-    return mix(downLayer, upperLayer, mask);
+vec3 mask(vec3 upperLayer, vec3 downLayer, float mask, float opacity) {
+    /// mask is usually related to the shape of upperLayer.
+    /// opacity is usually a constant.
+
+    return mix(downLayer, upperLayer, mask * opacity);
+
+}
+
+vec3 paste(vec3 upperLayer, vec3 downLayer) {
+    /// Only paste non-blank (non-black) part of the upperLayer on top of the downLayer.
+
+    float opacity = (upperLayer.x > 0.0 || upperLayer.y > 0.0 || upperLayer.z > 0.0) ? 1.0 : 0.0;
+    return mix(downLayer, upperLayer, opacity);
+
 }
 
 ///--------------------------------------------------------------------------------
@@ -338,19 +350,26 @@ void main() {
 
     /// Get the coordinate, make it apsect-ratio free;
     st = gl_FragCoord.xy / u_resolution.xy;
+    mSt = gl_FragCoord.xy / u_resolution.xy;
 
     // Make the scene aspect-ratio free:
     st.x *= u_resolution.x / u_resolution.y;
+    mSt.x *= u_resolution.x / u_resolution.y;
 
     // Shift (0, 0) to the center of the screen:
     st.x -= 0.5 * u_resolution.x / u_resolution.y;
     st.y -= 0.5;
+    mSt.x -= 0.5 * u_resolution.x / u_resolution.y;
+    mSt.y -= 0.5;
 
     // Shift (0.5, 0.5) to the center of the screen:
     st += 0.5;
+    mSt += 0.5;
 
     sti = floor(st);
     stf = fract(st);
+    mSti = floor(mSt);
+    mStf = fract(mSt);
 
     /// Now the center of the scene is the same as that of the window,
     /// and the scene will scale/duplicate about its center.
@@ -358,9 +377,9 @@ void main() {
     /// When drawing using stf, the scence ranges from (0.0, 0.0) to (1.0, 1.0),
     
     shift(0.5, 0.0);
-    scale(3.0);
+    scale(5.0);
     // scale(3.0);
-    rotate(u_time);
+    // rotate(u_time);
     // shift(0.5, 0.0);
     // scale(100.0 * sin(u_time * 2.0));
     // shift(u_time / 1.0, 0.0);
@@ -369,10 +388,20 @@ void main() {
 
     
 
+    float circle1pct = circle(stf, 0.25);
+    vec3 circle1 = vec3(circle1pct, 0.0, 0.0);
+    
 
+    float circle2pct = circle(stf + 0.1, 0.25);
+    vec3 circle2 = vec3(0.0, circle2pct, 0.0);
+
+    vec3 colorCircles = mask(circle1, circle2, 1.0 - circle2pct, 1.0);
+    colorCircles = paste(circle1, circle2);
+
+    float maskPct = circle(mStf, 0.40);
+    color = mask(colorCircles, color, maskPct, 1.0);
     
-    
-    color = vec3(circle(stf, 0.25));
+    // color = vec3(circle(stf, 0.25));
     // color = vec3(quadrant(stf, 0.5, int(snoise(u_time * 1.0 + sti) * 4.0)) );
     // color = vec3(triangle(stf, int(snoise(u_time * 1.0 + sti) * 4.0)));
     // color = vec3(box(stf, 0.5));
