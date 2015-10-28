@@ -945,7 +945,7 @@ void main() {
 
         color = blend(color3, color2, opacity);
 
-    } else if(time <= 100.0) {
+    } else if(time <= 90.0) {
 
         vec3 color3 = scene3(59.0);
         color = color3;
@@ -957,7 +957,7 @@ void main() {
 
         float fadeInTime = 10.0;
         float fadeInVelocity = 1.0 / fadeInTime;
-        float opacity = fadeInVelocity * (time - 100.0);
+        float opacity = fadeInVelocity * (time - 90.0);
         opacity = opacity <= 1.0 ? opacity : 1.0;
         opacity = opacity >= 0.0 ? opacity : 0.0;
 
