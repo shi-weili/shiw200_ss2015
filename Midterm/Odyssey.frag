@@ -669,10 +669,27 @@ vec3 scene2(float startTime) {
     float time = u_time - startTime;
     vec3 color = vec3(0.0);
 
-    color = vec3(circle(stf, 0.25));
+    scale(3.0);
 
+    // Gradient for bumps:
+    st += gCircle(stf, 0.0, 0.45) * 2.5;
 
+    // Gradient for ripples:
+    float driftTime = time * 0.1;
+    st += snoise((st * 0.7) + vec2(0.0, driftTime));
 
+    // Draw patterns:
+    float patternSacleFactor = 2.0;
+    color += smoothstep(0.0, 1.0, snoise(st * patternSacleFactor)) * 1.8; // Big drops
+    color += smoothstep(0.3, 0.7, snoise(st * patternSacleFactor)) * 1.; // Splatter
+    color -= smoothstep(0.45, 0.55, snoise(st * patternSacleFactor)) * 0.5; // Holes on splatter
+
+    // Overall gradient:
+    color += smoothstep(0.0, 1.0, st.y) * 0.6;
+
+    // Tint:
+    vec3 liquidColor = rgb(1.0, 0.5, 0.3);
+    color = tint(color, liquidColor);
 
     // Translate the matrixs back:
     rotate(-rotation);
