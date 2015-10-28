@@ -689,6 +689,60 @@ vec3 scene2(float startTime) {
 
         st += gCircle(stf, 0.0, bumpSize) * bumpStrength;
 
+    } else if(bumpTime >= bumpStep * 2.0 && 
+            (sti.x == -2.0 && sti.y == 1.0 || 
+                sti.x == 2.0 && sti.y == -1.0)) {
+
+        st += gCircle(stf, 0.0, bumpSize) * bumpStrength;
+
+    } else if(bumpTime >= bumpStep * 3.0 && 
+            (sti.x == 0.0 && sti.y == 1.0 || 
+                sti.x == 0.0 && sti.y == -1.0)) {
+
+        st += gCircle(stf, 0.0, bumpSize) * bumpStrength;
+
+    } else if(bumpTime >= bumpStep * 4.0 && 
+            (sti.x == 3.0 && sti.y == 0.0 || 
+                sti.x == -3.0 && sti.y == 0.0)) {
+
+        st += gCircle(stf, 0.0, bumpSize) * bumpStrength;
+
+    } else if(bumpTime >= bumpStep * 5.0 && 
+            (sti.x == 2.0 && sti.y == 1.0 || 
+                sti.x == -2.0 && sti.y == -1.0)) {
+
+        st += gCircle(stf, 0.0, bumpSize) * bumpStrength;
+
+    } else if(bumpTime >= bumpStep * 6.0 && 
+            (sti.x == -1.0 && sti.y == 1.0 || 
+                sti.x == 1.0 && sti.y == -1.0)) {
+
+        st += gCircle(stf, 0.0, bumpSize) * bumpStrength;
+
+    } else if(bumpTime >= bumpStep * 7.0 && 
+            (sti.x == 2.0 && sti.y == 0.0 || 
+                sti.x == -2.0 && sti.y == 0.0)) {
+
+        st += gCircle(stf, 0.0, bumpSize) * bumpStrength;
+
+    } else if(bumpTime >= bumpStep * 8.0 && 
+            (sti.x == 3.0 && sti.y == 1.0 || 
+                sti.x == -3.0 && sti.y == -1.0)) {
+
+        st += gCircle(stf, 0.0, bumpSize) * bumpStrength;
+
+    } else if(bumpTime >= bumpStep * 9.0 && 
+            (sti.x == 1.0 && sti.y == 0.0 || 
+                sti.x == -1.0 && sti.y == 0.0)) {
+
+        st += gCircle(stf, 0.0, bumpSize) * bumpStrength;
+
+    } else if(bumpTime >= bumpStep * 10.0 && 
+            (sti.x == -3.0 && sti.y == 1.0 || 
+                sti.x == 3.0 && sti.y == -1.0)) {
+
+        st += gCircle(stf, 0.0, bumpSize) * bumpStrength;
+
     }
 
     // Gradient for ripples:
