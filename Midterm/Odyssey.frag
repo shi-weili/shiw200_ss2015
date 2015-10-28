@@ -21,7 +21,7 @@ float scaleFactor = 1.0;
 float rotation = 0.0;
 vec3 color = vec3(0.0);
 
-// Global variables for mask's coordinates and color:
+// Global variables for scene mask's coordinates and color:
 vec2 mSt = vec2(0.0);
 vec2 mSti = vec2(0.0);
 vec2 mStf = vec2(0.0);
@@ -424,7 +424,7 @@ float snoise01(vec2 v) {
 }
 
 ///--------------------------------------------------------------------------------
-/// Scene 
+/// Scene 1
 
 vec3 sun(vec2 st, vec2 center) {
 
@@ -447,10 +447,10 @@ vec3 halo(vec2 st, vec2 center, float radius) {
     float pct1 = gCircle(st, center, radius * 0.0, radius * 0.4);
     vec3 color1 = tint(pct1, innerColor);
 
-    float pct2 = gCircle(st, center, radius * 0.25, radius * 0.8);
+    float pct2 = gCircle(st, center, radius * 0.25, radius * 0.82);
     vec3 color2 = tint(pct2, middleColor);
 
-    float pct3 = gCircle(st, center, radius * 0.5, radius * 1.0);
+    float pct3 = gCircle(st, center, radius * 0.5, radius * 0.95);
     vec3 color3 = tint(pct3, outterColor);
 
     vec3 color = screen(color2, color3);
@@ -505,7 +505,7 @@ float earthShape(vec2 st) {
 
 vec3 moon(vec2 st, vec2 center) {
 
-    vec3 moonColor = rgb(0.03, 0.05, 0.10) * 0.7;
+    vec3 moonColor = rgb(0.03, 0.05, 0.10) * 0.8;
     float radius = 1.2;
 
     float pct = circle(st, center, radius);
@@ -525,8 +525,8 @@ vec3 moon(vec2 st, vec2 center) {
     noise = vec3(snoise(relativePosition * 500.0));
     color = mask(noise, color, pct, 0.02);
 
-    vec3 gradient = vec3(gCircle(st, center - vec2(0.0, radius * 0.3), radius * 0.95, radius * 1.2));
-    color -= gradient * 0.1;
+    vec3 gradient = vec3(gCircle(st, center - vec2(0.0, radius * 0.3), radius * 0.85, radius * 1.2));
+    color -= gradient * 0.5;
 
     return color;
 
@@ -540,9 +540,10 @@ float moonShape(vec2 st, vec2 center) {
 
 }
 
-void scene1(float startTime) {
+vec3 scene1(float startTime) {
 
     float time = u_time - startTime;
+    vec3 color = vec3(0.0);
 
     // Sun:
     vec2 sunCenterStart = vec2(0.5, 0.55);
@@ -598,7 +599,8 @@ void scene1(float startTime) {
 
         // Matrix manipulation:
         float scaleVelocity = 6.0 / 4.0; // times / seconds
-        float scaleTime = time - 36.0 <= 4.0 ? time - 36.0 : 4.0;
+        float scaleTime = time - 36.0;
+        // scaleTime = scaleTime <= 4.0 ? scaleTime : 4.0;
         scale(1.0 + scaleVelocity * scaleTime);
 
         // Sun:
@@ -623,7 +625,7 @@ void scene1(float startTime) {
         // Fade in duplicates:
         if(distance(sti, vec2(0.0, 0.0)) >= 0.001) { // Duplicates
 
-            float duplicatesFadeInTime = 4.0;
+            float duplicatesFadeInTime = 1.0;
             float duplicatesFadeInVelocity = 1.0 / duplicatesFadeInTime;
             float duplicatesOpacity = duplicatesFadeInVelocity * (time - 36.0);
             duplicatesOpacity = duplicatesOpacity <= 1.0 ? duplicatesOpacity : 1.0;
@@ -633,7 +635,6 @@ void scene1(float startTime) {
         }
 
     }
-
 
     // Fade-in:
     float blackSceneFadeInTime = 10.0;
@@ -647,8 +648,69 @@ void scene1(float startTime) {
 
     }
 
+    // Translate the matrixs back:
+    rotate(-rotation);
+    scale(-scaleFactor);
+    shift(-drift);
+
+    rotateMask(-mRotation);
+    scaleMask(-mScaleFactor);
+    shiftMask(-mDrift);
+
+    return color;
+
 }
 
+///--------------------------------------------------------------------------------
+/// Scene 2
+
+vec3 scene2(float startTime) {
+
+    float time = u_time - startTime;
+    vec3 color = vec3(0.0);
+
+    color = vec3(circle(stf, 0.25));
+
+
+
+
+    // Translate the matrixs back:
+    rotate(-rotation);
+    scale(-scaleFactor);
+    shift(-drift);
+
+    rotateMask(-mRotation);
+    scaleMask(-mScaleFactor);
+    shiftMask(-mDrift);
+
+    return color;
+
+}
+
+///--------------------------------------------------------------------------------
+/// Scene 3
+
+vec3 scene3(float startTime) {
+
+    float time = u_time - startTime;
+    vec3 color = vec3(0.0);
+
+    
+
+
+
+    // Translate the matrixs back:
+    rotate(-rotation);
+    scale(-scaleFactor);
+    shift(-drift);
+
+    rotateMask(-mRotation);
+    scaleMask(-mScaleFactor);
+    shiftMask(-mDrift);
+
+    return color;
+
+}
 
 ///--------------------------------------------------------------------------------
 
@@ -714,7 +776,64 @@ void main() {
     // color = vec3(halfSquare(stf, int(random(u_time / 1000000.0 + sti) * 4.0)));
     // color = vec3(polygon(stf, 0.4, 20));
 
-    scene1(0.0);
+
+
+    // if(u_time <= 40.0) {
+
+    //     vec3 color1 = scene1(0.0);
+    //     color = color1;
+
+    // } else if(u_time <= 45.0) {
+
+    //     vec3 color1 = scene1(0.0);
+    //     vec3 color2 = scene2(40.0);
+
+    //     float fadeInTime = 10.0;
+    //     float fadeInVelocity = 1.0 / fadeInTime;
+    //     float opacity = fadeInVelocity * (u_time - 40.0);
+    //     opacity = opacity <= 1.0 ? opacity : 1.0;
+
+    //     color = blend(color2, color1, opacity);
+
+    // } else if(u_time <= 59.0) {
+
+    //     vec3 color2 = scene2(40.0);
+    //     color = color2;
+
+    // } else if(u_time <= 60.0) {
+
+    //     vec3 color2 = scene2(40.0);
+    //     vec3 color3 = scene3(59.0);
+
+    //     float fadeInTime = 1.0;
+    //     float fadeInVelocity = 1.0 / fadeInTime;
+    //     float opacity = fadeInVelocity * (u_time - 59.0);
+    //     opacity = opacity <= 1.0 ? opacity : 1.0;
+
+    //     color = blend(color3, color2, opacity);
+
+    // } else if(u_time <= 108.0) {
+
+    //     vec3 color3 = scene3(59.0);
+    //     color = color3;
+
+    // } else {
+
+    //     vec3 color3 = scene3(59.0);
+    //     vec3 blackScreen = blackScene();
+
+    //     float fadeInTime = 5.0;
+    //     float fadeInVelocity = 1.0 / fadeInTime;
+    //     float opacity = fadeInVelocity * (u_time - 59.0);
+    //     opacity = opacity <= 1.0 ? opacity : 1.0;
+
+    //     color = blend(blackScreen, color3, opacity);
+
+    // }
+
+
+    color = scene2(40.0);
+
 
     gl_FragColor = vec4(color, 1.0);
 
