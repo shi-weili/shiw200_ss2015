@@ -13,12 +13,23 @@ uniform vec2 u_resolution;
 uniform vec2 u_mouse;
 uniform float u_time;
 
+// Global variables for coordinates and color:
 vec2 st = vec2(0.0);
 vec2 sti = vec2(0.0);
 vec2 stf = vec2(0.0);
 vec2 drift = vec2(0.0);
 float scaleFactor = 1.0;
 float rotation = 0.0;
+vec3 color = vec3(0.0);
+
+// Global variables for mask's coordinates and color:
+vec2 mSt = vec2(0.0);
+vec2 mSti = vec2(0.0);
+vec2 mStf = vec2(0.0);
+vec2 mDrift = vec2(0.0);
+float mScaleFactor = 1.0;
+float mRotation = 0.0;
+vec3 mColor = vec3(0.0);
 
 ///--------------------------------------------------------------------------------
 /// Matrix manipulation.
@@ -34,7 +45,7 @@ mat2 rotateMatrix(float angle) {
 
 }
 
-void shift(vec2 v) {
+void shift(inout vec2 st, out vec2 sti, out vec2 stf, out vec2 drift, vec2 v) {
     /// Move the screen position of (0.5, 0.5) with current scaleFactor in mind.
     /// Won't be affected by rotation.
 
@@ -42,26 +53,47 @@ void shift(vec2 v) {
     st /= scaleFactor;
 
     st += v / scaleFactor;
-    drift += v;
-    
+
     st *= scaleFactor;
     st *= rotateMatrix(rotation);
 
+    drift += v;
     sti = floor(st);
     stf = fract(st);
 
 }
 
-void shift(float x, float y) {
-
-    shift(vec2(x, y));
+void shift(vec2 v) {
+    
+    shift(st, sti, stf, drift, v);
 
 }
 
-void scale(float factor) {
+void shiftMask(vec2 v) {
+
+    shift(mSt, mSti, mStf, mDrift, v);
+
+}
+
+void shift(float x, float y) {
+
+    shift(st, sti, stf, drift, vec2(x, y));
+
+}
+
+void shiftMask(float x, float y) {
+
+    shift(mSt, mSti, mStf, mDrift, vec2(x, y));
+
+}
+
+void scale(inout vec2 st, out vec2 sti, out vec2 stf, out float scaleFactor, float factor) {
     /// Scale about (0.5, 0.5).
 
+    st -= 0.5;
     st *= factor;
+    st += 0.5;
+
     scaleFactor *= factor;
 
     sti = floor(st);
@@ -69,22 +101,145 @@ void scale(float factor) {
 
 }
 
-void rotate(float angle) {
+void scale(float factor) {
+
+    scale(st, sti, stf, scaleFactor, factor);
+
+}
+
+void scaleMask(float factor) {
+
+    scale(mSt, mSti, mStf, mScaleFactor, factor);
+
+}
+
+void rotate(inout vec2 st, out vec2 sti, out vec2 stf, out float rotation, float angle) {
     /// Rotate around (0.5, 0.5).
     /// Angle in radians.
 
-    st -= 0.5 * scaleFactor;
-
+    st -= 0.5;
     st *= rotateMatrix(angle);
+    st += 0.5;
+
     rotation = mod(rotation + angle, 2.0 * PI);
-
-    st += 0.5 * scaleFactor;
-
     sti = floor(st);
     stf = fract(st);
 
 }
 
+void rotate(float angle) {
+    
+    rotate(st, sti, stf, rotation, angle);
+
+}
+
+void rotateMask(float angle) {
+    
+    rotate(mSt, mSti, mStf, mRotation, angle);
+
+}
+
+///--------------------------------------------------------------------------------
+/// Color blending.
+
+vec3 blend(vec3 upperLayer, vec3 downLayer, float opacity) {
+
+    return mix(downLayer, upperLayer, opacity);
+
+}
+
+vec3 mask(vec3 upperLayer, vec3 downLayer, vec3 mask) {
+    return mix(downLayer, upperLayer, mask);
+}
+
+///--------------------------------------------------------------------------------
+/// Basic shapes.
+/// All shapes are white, on a black background.
+
+float circle(vec2 st, float radius) {
+    /// Centered at (0.5, 0.5).
+
+    float distance = distance(st, vec2(0.5));
+
+    return 1.0 - smoothstep(radius - AA,
+                         radius + AA,
+                         distance);
+
+}
+
+float quadrant(vec2 st, float radius, int position) {
+    /// Position 0: bottom-left
+    /// Position 1: top-left
+    /// Position 2: top-right
+    /// Position 3: bottom-right
+
+    float distance;
+
+    if(position == 0) {
+        distance = distance(st, vec2(0.0, 0.0));
+    } else if(position == 1) {
+        distance = distance(st, vec2(0.0, 1.0));
+    } else if(position == 2) {
+        distance = distance(st, vec2(1.0, 1.0));
+    } else {
+        distance = distance(st, vec2(1.0, 0.0));
+    }
+
+    return 1.0 - smoothstep(radius - AA,
+                         radius + AA,
+                         distance);
+}
+
+float triangle(vec2 st, int position) {
+    /// Isosceles right triangle
+    /// Position 0: bottom-left
+    /// Position 1: top-left
+    /// Position 2: top-right
+    /// Position 3: bottom-right
+
+    float difference;
+
+    if(position == 0) {
+        difference = (1.0 - st.x) - st.y;
+    } else if(position == 1) {
+        difference = st.y - st.x;
+    } else if(position == 2) {
+        difference = st.y - (1.0 - st.x);
+    } else {
+        difference = st.x - st.y;
+    }
+
+    return smoothstep(-0.01, 0.01, difference);
+
+}
+
+float box(vec2 st, float size) {
+
+    float edge = (1.0 - size) / 2.0;
+
+    return smoothstep(0.0 + edge - AA, 0.0 + edge + AA, st.x) *
+            smoothstep(0.0 + edge - AA, 0.0 + edge + AA, st.y) *
+            (1.0 - smoothstep(1.0 - edge - AA, 1.0 - edge + AA, st.x)) *
+            (1.0 - smoothstep(1.0 - edge - AA, 1.0 - edge + AA, st.y));
+}
+
+float halfSquare(vec2 st, int position) {
+    /// Position 0: left
+    /// Position 1: right
+    /// Position 2: top
+    /// Position 3: bottom
+
+    if(position == 0) {
+        return smoothstep(0.5 - AA, 0.5 + AA, 1.0 - st.x);
+    } else if(position == 1) {
+        return smoothstep(0.5 - AA, 0.5 + AA, st.x);
+    } else if(position == 2) {
+        return smoothstep(0.5 - AA, 0.5 + AA, st.y);
+    } else {
+        return smoothstep(0.5 - AA, 0.5 + AA, 1.0 - st.x);
+    }
+
+}
 
 ///--------------------------------------------------------------------------------
 /// Utility functions.
@@ -176,95 +331,6 @@ float snoise01(vec2 v) {
 
 }
 
-///--------------------------------------------------------------------------------
-/// Draw basic shapes.
-/// All shapes are white, on a black background.
-
-float circle(vec2 st, float radius) {
-    /// Centered at (0.5, 0.5).
-
-    float distance = distance(st, vec2(0.5));
-
-    return 1.0 - smoothstep(radius - AA,
-                         radius + AA,
-                         distance);
-
-}
-
-float quadrant(vec2 st, float radius, int position) {
-    /// Position 0: bottom-left
-    /// Position 1: top-left
-    /// Position 2: top-right
-    /// Position 3: bottom-right
-
-    float distance;
-
-    if(position == 0) {
-        distance = distance(st, vec2(0.0, 0.0));
-    } else if(position == 1) {
-        distance = distance(st, vec2(0.0, 1.0));
-    } else if(position == 2) {
-        distance = distance(st, vec2(1.0, 1.0));
-    } else {
-        distance = distance(st, vec2(1.0, 0.0));
-    }
-
-    return 1.0 - smoothstep(radius - AA,
-                         radius + AA,
-                         distance);
-}
-
-float triangle(vec2 st, int position) {
-    /// Isosceles right triangle
-    /// Position 0: bottom-left
-    /// Position 1: top-left
-    /// Position 2: top-right
-    /// Position 3: bottom-right
-
-    float difference;
-
-    if(position == 0) {
-        difference = (1.0 - st.x) - st.y;
-    } else if(position == 1) {
-        difference = st.y - st.x;
-    } else if(position == 2) {
-        difference = st.y - (1.0 - st.x);
-    } else {
-        difference = st.x - st.y;
-    }
-
-    return smoothstep(-0.01, 0.01, difference);
-
-}
-
-float box(vec2 st, float size) {
-
-    float edge = (1.0 - size) / 2.0;
-
-    return smoothstep(0.0 + edge - AA, 0.0 + edge + AA, st.x) *
-            smoothstep(0.0 + edge - AA, 0.0 + edge + AA, st.y) *
-            (1.0 - smoothstep(1.0 - edge - AA, 1.0 - edge + AA, st.x)) *
-            (1.0 - smoothstep(1.0 - edge - AA, 1.0 - edge + AA, st.y));
-}
-
-float halfSquare(vec2 st, int position) {
-    /// Position 0: left
-    /// Position 1: right
-    /// Position 2: top
-    /// Position 3: bottom
-
-    if(position == 0) {
-        return smoothstep(0.5 - AA, 0.5 + AA, 1.0 - st.x);
-    } else if(position == 1) {
-        return smoothstep(0.5 - AA, 0.5 + AA, st.x);
-    } else if(position == 2) {
-        return smoothstep(0.5 - AA, 0.5 + AA, st.y);
-    } else {
-        return smoothstep(0.5 - AA, 0.5 + AA, 1.0 - st.x);
-    }
-
-}
-
 
 ///--------------------------------------------------------------------------------
 
@@ -291,19 +357,13 @@ void main() {
     /// The coordinate of the center of the window/main scene is (0.5, 0.5).
     /// When drawing using stf, the scence ranges from (0.0, 0.0) to (1.0, 1.0),
     
-    
-    
-    
+    shift(0.5, 0.0);
+    scale(3.0);
     // scale(3.0);
     rotate(u_time);
     // shift(0.5, 0.0);
-   
-    // shift(0.5, 0.0);
-
     // scale(100.0 * sin(u_time * 2.0));
-    
     // shift(u_time / 1.0, 0.0);
-
     // scale(3.0);
 
 
@@ -312,7 +372,7 @@ void main() {
 
     
     
-    vec3 color = vec3(circle(stf, 0.5));
+    color = vec3(circle(stf, 0.25));
     // color = vec3(quadrant(stf, 0.5, int(snoise(u_time * 1.0 + sti) * 4.0)) );
     // color = vec3(triangle(stf, int(snoise(u_time * 1.0 + sti) * 4.0)));
     // color = vec3(box(stf, 0.5));
