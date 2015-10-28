@@ -158,9 +158,17 @@ vec3 mask(vec3 upperLayer, vec3 downLayer, float mask, float opacity) {
 
 vec3 paste(vec3 upperLayer, vec3 downLayer) {
     /// Only paste non-blank (non-black) part of the upperLayer on top of the downLayer.
+    /// Suitable for solid shapes.
 
     float opacity = (upperLayer.x > 0.0 || upperLayer.y > 0.0 || upperLayer.z > 0.0) ? 1.0 : 0.0;
     return mix(downLayer, upperLayer, opacity);
+
+}
+
+vec3 screen(vec3 upperLayer, vec3 downLayer) {
+    /// The screen blend mode results in a brighter picture.
+
+    return vec3(1.0) - (vec3(1.0) - downLayer) * (vec3(1.0) - upperLayer);
 
 }
 
@@ -177,6 +185,14 @@ float circle(vec2 st, float radius) {
                          radius + AA,
                          distance);
 
+}
+
+float gCircle(vec2 st, float radius) {
+    /// Circular graident.
+
+    float distance = distance(st, vec2(0.5));
+
+    return smoothstep(radius, 0.0, distance);
 }
 
 float quadrant(vec2 st, float radius, int position) {
@@ -405,18 +421,18 @@ void main() {
 
     
 
-    // float circle1pct = circle(stf, 0.25);
-    // vec3 circle1 = vec3(circle1pct, 0.0, 0.0);
+    float circle1pct = gCircle(stf, 0.25);
+    vec3 circle1 = vec3(circle1pct, 0.0, 0.0);
     
 
-    // float circle2pct = circle(stf + 0.1, 0.25);
-    // vec3 circle2 = vec3(0.0, circle2pct, 0.0);
+    float circle2pct = circle(stf + 0.2, 0.25);
+    vec3 circle2 = vec3(0.0, circle2pct * 0.5, 0.0);
 
-    // vec3 colorCircles = mask(circle1, circle2, 1.0 - circle2pct, 1.0);
-    // colorCircles = paste(circle1, circle2);
+    vec3 colorCircles = mask(circle1, circle2, 1.0 - circle2pct, 1.0);
+    color = screen(circle1, circle2);
 
     // float maskPct = circle(mStf, 0.40);
-    // // maskPct = polygon(mStf, 0.5, 3);
+    // maskPct = polygon(mStf, 0.5, 3);
     // color = mask(colorCircles, color, maskPct, 1.0);
     
     // color = vec3(circle(stf, 0.25));
@@ -425,7 +441,7 @@ void main() {
     // color = vec3(box(stf, 0.5));
     // color = vec3(halfSquare(stf, int(snoise01(u_time * 1.0 + sti) * 4.0)));
     // color = vec3(halfSquare(stf, int(random(u_time / 1000000.0 + sti) * 4.0)));
-    color = vec3(polygon(stf, 0.4, 6));
+    // color = vec3(polygon(stf, 0.4, 20));
 
     gl_FragColor = vec4(color, 1.0);
 
