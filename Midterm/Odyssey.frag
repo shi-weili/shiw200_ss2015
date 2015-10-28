@@ -505,7 +505,7 @@ float earthShape(vec2 st) {
 
 vec3 moon(vec2 st, vec2 center) {
 
-    vec3 moonColor = rgb(0.03, 0.05, 0.10) * 0.9;
+    vec3 moonColor = rgb(0.03, 0.05, 0.10) * 0.7;
     float radius = 1.2;
 
     float pct = circle(st, center, radius);
@@ -597,9 +597,9 @@ void scene1(float startTime) {
     } else {
 
         // Matrix manipulation:
-        float scaleVelocity = 3.0 / 4.0; // 3.0 times in 4.0 seconds
-        float scaleTime = time - 36.0 <= 40.0 ? time - 36.0 : 4.0;
-        scale(scaleVelocity * scaleTime);
+        float scaleVelocity = 6.0 / 4.0; // times / seconds
+        float scaleTime = time - 36.0 <= 4.0 ? time - 36.0 : 4.0;
+        scale(1.0 + scaleVelocity * scaleTime);
 
         // Sun:
         sunCenter = vec2(sunCenterStart + vec2(0.0, sunVelocity * 36.0));
