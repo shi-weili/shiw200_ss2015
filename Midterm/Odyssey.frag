@@ -672,11 +672,54 @@ vec3 scene2(float startTime) {
     scale(3.0);
 
     // Gradient for bumps:
-    st += gCircle(stf, 0.0, 0.45) * 2.5;
+    float bumpStartTime = 15.0;
+    float bumpStep = 0.4;   // in seconds
+    float bumpTime = time - bumpStartTime;
+    float bumpStrength = 2.5;
+    float bumpSize = 0.45;
+
+    if(bumpTime >= 0.0 && 
+        sti.x == 0.0 && sti.y == 0.0) {
+
+        st += gCircle(stf, 0.0, bumpSize) * bumpStrength;
+
+    } else if(bumpTime >= bumpStep * 1.0 && 
+            (sti.x == 1.0 && sti.y == 1.0 || 
+                sti.x == -1.0 && sti.y == -1.0)) {
+
+        st += gCircle(stf, 0.0, bumpSize) * bumpStrength;
+
+    }
 
     // Gradient for ripples:
-    float driftTime = time * 0.1;
-    st += snoise((st * 0.7) + vec2(0.0, driftTime));
+
+    // Ripple scale:
+    float rippleScale = 0.0;
+    float rippleScaleStartTime = 0.0;
+    float rippleScaleEndTime = 15.0;
+    float rippleScaleVelocity = 1.0 / (rippleScaleEndTime - rippleScaleStartTime);
+    rippleScale = 0.7 * (rippleScaleVelocity * (time - rippleScaleStartTime));
+    if(rippleScale > 0.7) {
+        rippleScale = 0.7;
+    }
+
+    // Ripple drift:
+    float rippleDrift = 0.0;
+
+    if (time > 5.0) {
+    
+        float driftScaleStartTime = 5.0;
+        float driftScaleEndTime = 15.0;
+        float driftScaleVelocity = 1.0 / (driftScaleEndTime - driftScaleStartTime);
+        float driftScale = 0.1 * (time - driftScaleStartTime) * driftScaleVelocity;
+        if(driftScale > 0.1) {
+            driftScale = 0.1;
+        }
+        rippleDrift = (time - 5.0) * driftScale;
+
+    }
+
+    st += snoise((st * rippleScale) + vec2(0.0, rippleDrift));
 
     // Draw patterns:
     float patternSacleFactor = 2.0;
@@ -849,7 +892,7 @@ void main() {
     // }
 
 
-    color = scene2(40.0);
+    color = scene2(0.0);
 
 
     gl_FragColor = vec4(color, 1.0);
