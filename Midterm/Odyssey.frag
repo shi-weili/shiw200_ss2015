@@ -12,6 +12,8 @@ precision mediump float;
 uniform vec2 u_resolution;
 uniform float u_time;
 
+float time = u_time + 59.0;
+
 // Global variables for coordinates and color:
 vec2 st = vec2(0.0);
 vec2 sti = vec2(0.0);
@@ -136,6 +138,31 @@ void rotateMask(float angle) {
     
     rotate(mSt, mSti, mStf, mRotation, angle);
 
+}
+
+void prepareCoordiantes() {
+    /// Get the coordinate, make it apsect-ratio free;
+    st = gl_FragCoord.xy / u_resolution.xy;
+    mSt = gl_FragCoord.xy / u_resolution.xy;
+
+    // Make the scene aspect-ratio free:
+    st.x *= u_resolution.x / u_resolution.y;
+    mSt.x *= u_resolution.x / u_resolution.y;
+
+    // Shift (0, 0) to the center of the screen:
+    st.x -= 0.5 * u_resolution.x / u_resolution.y;
+    st.y -= 0.5;
+    mSt.x -= 0.5 * u_resolution.x / u_resolution.y;
+    mSt.y -= 0.5;
+
+    // Shift (0.5, 0.5) to the center of the screen:
+    st += 0.5;
+    mSt += 0.5;
+
+    sti = floor(st);
+    stf = fract(st);
+    mSti = floor(mSt);
+    mStf = fract(mSt);
 }
 
 ///--------------------------------------------------------------------------------
@@ -505,7 +532,7 @@ float earthShape(vec2 st) {
 
 vec3 moon(vec2 st, vec2 center) {
 
-    vec3 moonColor = rgb(0.03, 0.05, 0.10) * 0.8;
+    vec3 moonColor = rgb(0.03, 0.05, 0.10) * 0.7;
     float radius = 1.2;
 
     float pct = circle(st, center, radius);
@@ -525,7 +552,7 @@ vec3 moon(vec2 st, vec2 center) {
     noise = vec3(snoise(relativePosition * 500.0));
     color = mask(noise, color, pct, 0.02);
 
-    vec3 gradient = vec3(gCircle(st, center - vec2(0.0, radius * 0.3), radius * 0.85, radius * 1.2));
+    vec3 gradient = vec3(gCircle(st, center - vec2(0.0, radius * 0.3), radius * 0.9, radius * 1.2));
     color -= gradient * 0.5;
 
     return color;
@@ -542,7 +569,7 @@ float moonShape(vec2 st, vec2 center) {
 
 vec3 scene1(float startTime) {
 
-    float time = u_time - startTime;
+    float time = time - startTime;
     vec3 color = vec3(0.0);
 
     // Sun:
@@ -600,7 +627,6 @@ vec3 scene1(float startTime) {
         // Matrix manipulation:
         float scaleVelocity = 6.0 / 4.0; // times / seconds
         float scaleTime = time - 36.0;
-        // scaleTime = scaleTime <= 4.0 ? scaleTime : 4.0;
         scale(1.0 + scaleVelocity * scaleTime);
 
         // Sun:
@@ -648,15 +674,6 @@ vec3 scene1(float startTime) {
 
     }
 
-    // Translate the matrixs back:
-    rotate(-rotation);
-    scale(-scaleFactor);
-    shift(-drift);
-
-    rotateMask(-mRotation);
-    scaleMask(-mScaleFactor);
-    shiftMask(-mDrift);
-
     return color;
 
 }
@@ -666,7 +683,7 @@ vec3 scene1(float startTime) {
 
 vec3 scene2(float startTime) {
 
-    float time = u_time - startTime;
+    float time = time - startTime;
     vec3 color = vec3(0.0);
 
     scale(3.0);
@@ -679,67 +696,67 @@ vec3 scene2(float startTime) {
     float bumpSize = 0.45;
 
     if(bumpTime >= 0.0 && 
-        sti.x == 0.0 && sti.y == 0.0) {
+        distance(sti, vec2(0.0, 0.0)) < 0.001 ) {
 
         st += gCircle(stf, 0.0, bumpSize) * bumpStrength;
 
     } else if(bumpTime >= bumpStep * 1.0 && 
-            (sti.x == 1.0 && sti.y == 1.0 || 
-                sti.x == -1.0 && sti.y == -1.0)) {
+            (distance(sti, vec2(1.0, 1.0)) < 0.001 || 
+                distance(sti, vec2(-1.0, -1.0)) < 0.001)) {
 
         st += gCircle(stf, 0.0, bumpSize) * bumpStrength;
 
     } else if(bumpTime >= bumpStep * 2.0 && 
-            (sti.x == -2.0 && sti.y == 1.0 || 
-                sti.x == 2.0 && sti.y == -1.0)) {
+            (distance(sti, vec2(-2.0, 1.0)) < 0.001 || 
+                distance(sti, vec2(2.0, -1.0)) < 0.001)) {
 
         st += gCircle(stf, 0.0, bumpSize) * bumpStrength;
 
     } else if(bumpTime >= bumpStep * 3.0 && 
-            (sti.x == 0.0 && sti.y == 1.0 || 
-                sti.x == 0.0 && sti.y == -1.0)) {
+            (distance(sti, vec2(0.0, 1.0)) < 0.001 || 
+                distance(sti, vec2(0.0, -1.0)) < 0.001)) {
 
         st += gCircle(stf, 0.0, bumpSize) * bumpStrength;
 
     } else if(bumpTime >= bumpStep * 4.0 && 
-            (sti.x == 3.0 && sti.y == 0.0 || 
-                sti.x == -3.0 && sti.y == 0.0)) {
+            (distance(sti, vec2(3.0, 0.0)) < 0.001 || 
+                distance(sti, vec2(-3.0, 0.0)) < 0.001)) {
 
         st += gCircle(stf, 0.0, bumpSize) * bumpStrength;
 
     } else if(bumpTime >= bumpStep * 5.0 && 
-            (sti.x == 2.0 && sti.y == 1.0 || 
-                sti.x == -2.0 && sti.y == -1.0)) {
+            (distance(sti, vec2(2.0, 1.0)) < 0.001 || 
+                distance(sti, vec2(-2.0, -1.0)) < 0.001)) {
 
         st += gCircle(stf, 0.0, bumpSize) * bumpStrength;
 
     } else if(bumpTime >= bumpStep * 6.0 && 
-            (sti.x == -1.0 && sti.y == 1.0 || 
-                sti.x == 1.0 && sti.y == -1.0)) {
+            (distance(sti, vec2(-1.0, 1.0)) < 0.001 || 
+                distance(sti, vec2(1.0, -1.0)) < 0.001)) {
 
         st += gCircle(stf, 0.0, bumpSize) * bumpStrength;
 
     } else if(bumpTime >= bumpStep * 7.0 && 
-            (sti.x == 2.0 && sti.y == 0.0 || 
-                sti.x == -2.0 && sti.y == 0.0)) {
+            (distance(sti, vec2(2.0, 0.0)) < 0.001 || 
+                distance(sti, vec2(-2.0, 0.0)) < 0.001)) {
 
         st += gCircle(stf, 0.0, bumpSize) * bumpStrength;
 
     } else if(bumpTime >= bumpStep * 8.0 && 
-            (sti.x == 3.0 && sti.y == 1.0 || 
-                sti.x == -3.0 && sti.y == -1.0)) {
+            (distance(sti, vec2(3.0, 1.0)) < 0.001 || 
+                distance(sti, vec2(-3.0, -1.0)) < 0.001)) {
 
         st += gCircle(stf, 0.0, bumpSize) * bumpStrength;
 
     } else if(bumpTime >= bumpStep * 9.0 && 
-            (sti.x == 1.0 && sti.y == 0.0 || 
-                sti.x == -1.0 && sti.y == 0.0)) {
+            (distance(sti, vec2(1.0, 0.0)) < 0.001 || 
+                distance(sti, vec2(-1.0, 0.0)) < 0.001)) {
 
         st += gCircle(stf, 0.0, bumpSize) * bumpStrength;
 
     } else if(bumpTime >= bumpStep * 10.0 && 
-            (sti.x == -3.0 && sti.y == 1.0 || 
-                sti.x == 3.0 && sti.y == -1.0)) {
+            (distance(sti, vec2(-3.0, 1.0)) < 0.001 || 
+                distance(sti, vec2(3.0, -1.0)) < 0.001)) {
 
         st += gCircle(stf, 0.0, bumpSize) * bumpStrength;
 
@@ -788,15 +805,6 @@ vec3 scene2(float startTime) {
     vec3 liquidColor = rgb(1.0, 0.5, 0.3);
     color = tint(color, liquidColor);
 
-    // Translate the matrixs back:
-    rotate(-rotation);
-    scale(-scaleFactor);
-    shift(-drift);
-
-    rotateMask(-mRotation);
-    scaleMask(-mScaleFactor);
-    shiftMask(-mDrift);
-
     return color;
 
 }
@@ -806,21 +814,16 @@ vec3 scene2(float startTime) {
 
 vec3 scene3(float startTime) {
 
-    float time = u_time - startTime;
+    float time = time - startTime;
     vec3 color = vec3(0.0);
 
     
+    // scale(100.0 * sin(u_time * 2.0));
+    scale(100.0);
+
+    color = vec3(quadrant(stf, 0.5, int(snoise01(time * 1.0 + sti) * 4.0)) );
 
 
-
-    // Translate the matrixs back:
-    rotate(-rotation);
-    scale(-scaleFactor);
-    shift(-drift);
-
-    rotateMask(-mRotation);
-    scaleMask(-mScaleFactor);
-    shiftMask(-mDrift);
 
     return color;
 
@@ -830,28 +833,7 @@ vec3 scene3(float startTime) {
 
 void main() {
 
-    /// Get the coordinate, make it apsect-ratio free;
-    st = gl_FragCoord.xy / u_resolution.xy;
-    mSt = gl_FragCoord.xy / u_resolution.xy;
-
-    // Make the scene aspect-ratio free:
-    st.x *= u_resolution.x / u_resolution.y;
-    mSt.x *= u_resolution.x / u_resolution.y;
-
-    // Shift (0, 0) to the center of the screen:
-    st.x -= 0.5 * u_resolution.x / u_resolution.y;
-    st.y -= 0.5;
-    mSt.x -= 0.5 * u_resolution.x / u_resolution.y;
-    mSt.y -= 0.5;
-
-    // Shift (0.5, 0.5) to the center of the screen:
-    st += 0.5;
-    mSt += 0.5;
-
-    sti = floor(st);
-    stf = fract(st);
-    mSti = floor(mSt);
-    mStf = fract(mSt);
+    prepareCoordiantes();
 
     /// Now the center of the scene is the same as that of the window,
     /// and the scene will scale/duplicate about its center.
@@ -890,64 +872,63 @@ void main() {
     // color = vec3(halfSquare(stf, int(random(u_time / 1000000.0 + sti) * 4.0)));
     // color = vec3(polygon(stf, 0.4, 20));
 
+    if(time <= 40.0) {
 
+        vec3 color1 = scene1(0.0);
+        color = color1;
 
-    // if(u_time <= 40.0) {
+    } else if(time <= 45.0) {
 
-    //     vec3 color1 = scene1(0.0);
-    //     color = color1;
+        vec3 color1 = scene1(0.0);
+        prepareCoordiantes();
+        vec3 color2 = scene2(40.0);
 
-    // } else if(u_time <= 45.0) {
+        float fadeInTime = 5.0;
+        float fadeInVelocity = 1.0 / fadeInTime;
+        float opacity = fadeInVelocity * (time - 40.0);
+        opacity = opacity <= 1.0 ? opacity : 1.0;
+        opacity = opacity >= 0.0 ? opacity : 0.0;
 
-    //     vec3 color1 = scene1(0.0);
-    //     vec3 color2 = scene2(40.0);
+        color = blend(color2, color1, opacity);
 
-    //     float fadeInTime = 10.0;
-    //     float fadeInVelocity = 1.0 / fadeInTime;
-    //     float opacity = fadeInVelocity * (u_time - 40.0);
-    //     opacity = opacity <= 1.0 ? opacity : 1.0;
+    } else if(time <= 59.0) {
 
-    //     color = blend(color2, color1, opacity);
+        vec3 color2 = scene2(40.0);
+        color = color2;
 
-    // } else if(u_time <= 59.0) {
+    } else if(time <= 60.0) {
 
-    //     vec3 color2 = scene2(40.0);
-    //     color = color2;
+        vec3 color2 = scene2(40.0);
+        prepareCoordiantes();
+        vec3 color3 = scene3(59.0);
 
-    // } else if(u_time <= 60.0) {
+        float fadeInTime = 1.0;
+        float fadeInVelocity = 1.0 / fadeInTime;
+        float opacity = fadeInVelocity * (time - 59.0);
+        opacity = opacity <= 1.0 ? opacity : 1.0;
+        opacity = opacity >= 0.0 ? opacity : 0.0;
 
-    //     vec3 color2 = scene2(40.0);
-    //     vec3 color3 = scene3(59.0);
+        color = blend(color3, color2, opacity);
 
-    //     float fadeInTime = 1.0;
-    //     float fadeInVelocity = 1.0 / fadeInTime;
-    //     float opacity = fadeInVelocity * (u_time - 59.0);
-    //     opacity = opacity <= 1.0 ? opacity : 1.0;
+    } else if(time <= 108.0) {
 
-    //     color = blend(color3, color2, opacity);
+        vec3 color3 = scene3(59.0);
+        color = color3;
 
-    // } else if(u_time <= 108.0) {
+    } else {
 
-    //     vec3 color3 = scene3(59.0);
-    //     color = color3;
+        vec3 color3 = scene3(59.0);
+        vec3 blackScreen = blackScene();
 
-    // } else {
+        float fadeInTime = 5.0;
+        float fadeInVelocity = 1.0 / fadeInTime;
+        float opacity = fadeInVelocity * (time - 108.0);
+        opacity = opacity <= 1.0 ? opacity : 1.0;
+        opacity = opacity >= 0.0 ? opacity : 0.0;
 
-    //     vec3 color3 = scene3(59.0);
-    //     vec3 blackScreen = blackScene();
+        color = blend(blackScreen, color3, opacity);
 
-    //     float fadeInTime = 5.0;
-    //     float fadeInVelocity = 1.0 / fadeInTime;
-    //     float opacity = fadeInVelocity * (u_time - 59.0);
-    //     opacity = opacity <= 1.0 ? opacity : 1.0;
-
-    //     color = blend(blackScreen, color3, opacity);
-
-    // }
-
-
-    color = scene2(0.0);
-
+    }
 
     gl_FragColor = vec4(color, 1.0);
 
