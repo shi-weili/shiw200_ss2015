@@ -1,7 +1,7 @@
 /// Odyssey - A Film Made of Fragment Shaders
 /// Author: Weili Shi
 /// E-mail: me@shi-weili.com
-
+ 
 #ifdef GL_ES
 precision mediump float;
 #endif
@@ -553,7 +553,7 @@ vec3 moon(vec2 st, vec2 center) {
     noise = vec3(snoise(relativePosition * 500.0));
     color = mask(noise, color, pct, 0.02);
 
-    vec3 gradient = vec3(gCircle(st, center - vec2(0.0, radius * 0.3), radius * 0.9, radius * 1.2));
+    vec3 gradient = vec3(gCircle(st, center - vec2(0.0, radius * 0.25), radius * 0.9, radius * 1.2));
     color -= gradient * 0.5;
 
     return color;
@@ -827,7 +827,7 @@ vec3 scene3(float startTime) {
 
     } else { // Draw circles.
 
-        scale(150.0 * sin((time - 19.0 + (PI / 2.0)) * 1.0));
+        scale(100.0 * sin((time - 19.0 + (PI / 2.0)) * 1.0));
         color = vec3(circle(stf, 0.25));
 
     }
@@ -906,38 +906,6 @@ void main() {
     /// and the scene will scale/duplicate about its center.
     /// The coordinate of the center of the window/main scene is (0.5, 0.5).
     /// When drawing using stf, the scence ranges from (0.0, 0.0) to (1.0, 1.0),
-    
-    // shift(0.5, 0.0);
-    // scale(5.0);
-    // scale(3.0);
-    // rotate(u_time);
-    // shift(0.5, 0.0);
-    // scale(100.0 * sin(u_time * 2.0));
-    // shift(u_time / 1.0, 0.0);
-    // scale(3.0);
-
-    // float circle1pct = gCircle(stf, 0.25);
-    // circle1pct = gCircle(stf, 0.1, 0.25);
-    // vec3 circle1 = vec3(circle1pct, 0.0, 0.0);
-
-    // float circle2pct = circle(stf + 0.2, 0.25);
-    // vec3 circle2 = vec3(circle2pct);
-    // circle2 = tint(circle2, vec3(0.27, 0.37, 0.98));
-
-    // vec3 colorCircles = mask(circle1, circle2, 1.0 - circle2pct, 1.0);
-    // color = screen(circle1, circle2);
-
-    // float maskPct = circle(mStf, 0.40);
-    // maskPct = polygon(mStf, 0.5, 3);
-    // color = mask(colorCircles, color, maskPct, 1.0);
-    
-    // color = vec3(circle(stf, 0.25));
-    // color = vec3(quadrant(stf, 0.5, int(snoise(u_time * 1.0 + sti) * 4.0)) );
-    // color = vec3(triangle(stf, int(snoise(u_time * 1.0 + sti) * 4.0)));
-    // color = vec3(box(stf, 0.5));
-    // color = vec3(halfSquare(stf, int(snoise01(u_time * 1.0 + sti) * 4.0)));
-    // color = vec3(halfSquare(stf, int(random(u_time / 1000000.0 + sti) * 4.0)));
-    // color = vec3(polygon(stf, 0.4, 20));
 
     if(time <= 40.0) {
 
