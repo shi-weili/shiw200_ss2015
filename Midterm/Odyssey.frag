@@ -12,7 +12,7 @@ precision mediump float;
 uniform vec2 u_resolution;
 uniform float u_time;
 
-float time = u_time + 59.0;
+float time = u_time + 66.0;
 
 // Global variables for coordinates and color:
 vec2 st = vec2(0.0);
@@ -823,13 +823,15 @@ vec3 scene3(float startTime) {
     scale(150.0);
     color = vec3(quadrant(stf, 0.5, int(snoise01(time * 1.0 + sti * PI) * 4.0)) );
 
+    // Scale mask:
     if(time <= 1.0) {
 
         scaleMask(3.0);
 
     } else {
+
         float maskScaleStart = 3.0;
-        float maskSacleEnd = 0.3;
+        float maskSacleEnd = 0.1;
         float maskSacleStartTime = 1.0;
         float maskScaleEndTime = 19.0;
         float maskScaleVelocity = (maskSacleEnd - maskScaleStart) / (maskScaleEndTime - maskSacleStartTime);
@@ -841,8 +843,43 @@ vec3 scene3(float startTime) {
 
     }
 
+    // Rotate mask:
+    if(time >= 10.0) {
+
+        rotateMask((time - 10.0) * 0.1);
+
+    }
+
+    // Change mask shape:
+    float maskRadius = 0.4;
+
+    if(time < 15.0) {
+
+        mPct = circle(mStf, maskRadius);
+
+    } else if(time <= 16.0) {
+
+        mPct = polygon(mStf, maskRadius, 24);
+
+    } else if(time <= 17.0) {
+
+        mPct = polygon(mStf, maskRadius, 12);
+
+    } else if(time <= 18.0) {
+
+        mPct = polygon(mStf, maskRadius, 6);
+
+    } else if(time <= 19.0) {
+
+        mPct = polygon(mStf, maskRadius, 4);
+
+    } else {
+
+        mPct = polygon(mStf, maskRadius, 3);
+
+    }
+
     // Draw mask:
-    mPct = circle(mStf, 0.4);
     mColor = vec3(0.0);
     color = mask(color, mColor, mPct, 1.0);
 
