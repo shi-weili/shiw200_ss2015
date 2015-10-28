@@ -434,9 +434,27 @@ vec3 sun(vec2 st, vec2 center) {
     float pct = circle(st, center, radius);
     vec3 color = tint(pct, sunColor);
 
-    vec3 gradient = vec3(gCircle(st, center - vec2(0.0, radius * 0.3), radius * 0.95, radius * 1.2));
-    color -= gradient * 0.1;
+    return color;
 
+}
+
+vec3 halo(vec2 st, vec2 center, float radius) {
+
+    vec3 innerColor = vec3(1.0, 1.0, 1.0) * 0.6;
+    vec3 middleColor = vec3(1.0, 0.1, 0.1) * 0.2;
+    vec3 outterColor = vec3(0.5, 1.0, 0.5) * 0.1;
+
+    float pct1 = gCircle(st, center, radius * 0.0, radius * 0.4);
+    vec3 color1 = tint(pct1, innerColor);
+
+    float pct2 = gCircle(st, center, radius * 0.25, radius * 0.6);
+    vec3 color2 = tint(pct2, middleColor);
+
+    float pct3 = gCircle(st, center, radius * 0.5, radius * 1.0);
+    vec3 color3 = tint(pct3, outterColor);
+
+    vec3 color = screen(color2, color3);
+    color = screen(color1, color);
     return color;
 
 }
@@ -445,7 +463,7 @@ vec3 earth(vec2 st) {
 
     vec2 center = vec2(0.5, 0.4);
     float radius = 0.25;
-    vec3 earthColor = rgb(0.63, 0.68, 0.63);
+    vec3 earthColor = rgb(0.65, 0.68, 0.65);
 
     float pct = circle(st, center, radius);
     vec3 color = tint(pct, earthColor);
@@ -530,6 +548,15 @@ void scene1(float startTime) {
     vec3 earthImage = earth(stf);
     float earthMask = earthShape(stf);
     color = mask(earthImage, color, earthMask, 1.0);
+
+    // Draw halo:
+    float haloRadiusStart = 0.05;
+    float haloRadiusEnd = 0.3;
+    float haloTotalTime = 35.0;
+    float haloRadiusVelocity = (haloRadiusEnd - haloRadiusStart) / haloTotalTime;
+    float haloRadius = haloRadiusStart + haloRadiusVelocity * time;
+    vec3 haloImage = halo(stf, sunCenter, haloRadius);
+    color = screen(haloImage, color);
 
     // Draw moon:
     vec2 moonCenterStart = vec2(0.5, -0.4);
