@@ -202,7 +202,7 @@ float quadrant(vec2 st, float radius, int position) {
                          distance);
 }
 
-float triangle(vec2 st, int position) {
+float irTriangle(vec2 st, int position) {
     /// Isosceles right triangle
     /// Position 0: bottom-left
     /// Position 1: top-left
@@ -250,6 +250,23 @@ float halfSquare(vec2 st, int position) {
     } else {
         return smoothstep(0.5 - AA, 0.5 + AA, 1.0 - st.x);
     }
+
+}
+
+float polygon(vec2 st, float radius, int n) {
+    /// N-sided regular polygon, with the bottom edge horizontal.
+    /// n should be no less than 3.
+
+    float nf = float(n);
+
+    st -= vec2(0.5);
+    float theta = atan(st.y, st.x) + (PI / 2.0);
+
+    float edge = radius * (cos(PI / nf) / cos(theta - (2.0 * PI / nf) * floor((nf * theta + PI) / (2.0 * PI))));
+
+    return 1.0 - smoothstep(edge - AA,
+                            edge + AA,
+                            length(st));
 
 }
 
@@ -376,9 +393,9 @@ void main() {
     /// The coordinate of the center of the window/main scene is (0.5, 0.5).
     /// When drawing using stf, the scence ranges from (0.0, 0.0) to (1.0, 1.0),
     
-    shift(0.5, 0.0);
-    scale(5.0);
-    // scale(3.0);
+    // shift(0.5, 0.0);
+    // scale(5.0);
+    scale(3.0);
     // rotate(u_time);
     // shift(0.5, 0.0);
     // scale(100.0 * sin(u_time * 2.0));
@@ -388,18 +405,19 @@ void main() {
 
     
 
-    float circle1pct = circle(stf, 0.25);
-    vec3 circle1 = vec3(circle1pct, 0.0, 0.0);
+    // float circle1pct = circle(stf, 0.25);
+    // vec3 circle1 = vec3(circle1pct, 0.0, 0.0);
     
 
-    float circle2pct = circle(stf + 0.1, 0.25);
-    vec3 circle2 = vec3(0.0, circle2pct, 0.0);
+    // float circle2pct = circle(stf + 0.1, 0.25);
+    // vec3 circle2 = vec3(0.0, circle2pct, 0.0);
 
-    vec3 colorCircles = mask(circle1, circle2, 1.0 - circle2pct, 1.0);
-    colorCircles = paste(circle1, circle2);
+    // vec3 colorCircles = mask(circle1, circle2, 1.0 - circle2pct, 1.0);
+    // colorCircles = paste(circle1, circle2);
 
-    float maskPct = circle(mStf, 0.40);
-    color = mask(colorCircles, color, maskPct, 1.0);
+    // float maskPct = circle(mStf, 0.40);
+    // // maskPct = polygon(mStf, 0.5, 3);
+    // color = mask(colorCircles, color, maskPct, 1.0);
     
     // color = vec3(circle(stf, 0.25));
     // color = vec3(quadrant(stf, 0.5, int(snoise(u_time * 1.0 + sti) * 4.0)) );
@@ -407,6 +425,7 @@ void main() {
     // color = vec3(box(stf, 0.5));
     // color = vec3(halfSquare(stf, int(snoise01(u_time * 1.0 + sti) * 4.0)));
     // color = vec3(halfSquare(stf, int(random(u_time / 1000000.0 + sti) * 4.0)));
+    color = vec3(polygon(stf, 0.4, 6));
 
     gl_FragColor = vec4(color, 1.0);
 
