@@ -426,6 +426,41 @@ float snoise01(vec2 v) {
 ///--------------------------------------------------------------------------------
 /// Scene 
 
+vec3 earth(vec2 st) {
+
+    vec2 center = vec2(0.5, 0.4);
+    float radius = 0.25;
+    vec3 earthColor = rgb(0.63, 0.68, 0.63);
+
+    float pct = circle(st, center, radius);
+    vec3 color = tint(pct, earthColor);
+
+    vec2 relativePosition = st - center;
+
+    vec3 noise = vec3(snoise(relativePosition * 50.0));
+    color = mask(noise, color, pct, 0.01);
+
+    noise = vec3(snoise(relativePosition * 150.0));
+    color = mask(noise, color, pct, 0.015);
+
+    noise = vec3(snoise(relativePosition * 500.0));
+    color = mask(noise, color, pct, 0.02);
+
+    vec3 gradient = vec3(gCircle(st, center - vec2(0.0, radius * 0.25), radius * 0.95, radius * 1.25));
+    color -= gradient * 0.9;
+
+    return color;
+
+}
+
+float earthShape(vec2 st) {
+
+    vec2 center = vec2(0.5, 0.4);
+    float radius = 0.25;
+    float pct = circle(st, center, radius);
+    return pct;
+}
+
 vec3 moon(vec2 st, vec2 center) {
 
     vec3 moonColor = rgb(0.03, 0.05, 0.10) * 0.9;
@@ -455,18 +490,32 @@ vec3 moon(vec2 st, vec2 center) {
 
 }
 
+float moonShape(vec2 st, vec2 center) {
+
+    float radius = 1.2;
+    float pct = circle(st, center, radius);
+    return pct;
+
+}
+
 void scene1(float startTime) {
 
     float time = u_time - startTime;
 
-    
+    // Draw earth:
+    vec3 earthImage = earth(stf);
+    float earthMask = earthShape(stf);
+    color = earthImage;
 
     // Draw moon:
     vec2 moonCenterStart = vec2(0.5, -0.4);
     float moonTotalMileage = 0.8;
     float moonTotalTime = 35.0;
     float moonVelocity = moonTotalMileage / moonTotalTime;
-    color = moon(st, moonCenterStart - vec2(0.0, moonVelocity * time));
+    vec2 moonCenter = vec2(moonCenterStart - vec2(0.0, moonVelocity * time));
+    vec3 moonImage = moon(st, moonCenter);
+    float moonMask = moonShape(st, moonCenter);
+    color = mask(moonImage, color, moonMask, 1.0);
 
 }
 
