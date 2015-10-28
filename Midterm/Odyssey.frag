@@ -10,7 +10,6 @@ precision mediump float;
 #define PI 3.14159265359
 
 uniform vec2 u_resolution;
-uniform vec2 u_mouse;
 uniform float u_time;
 
 // Global variables for coordinates and color:
@@ -172,6 +171,14 @@ vec3 screen(vec3 upperLayer, vec3 downLayer) {
 
 }
 
+vec3 tint(vec3 shape, vec3 color) {
+    /// Tint white shape with color.
+    /// Suitable for solid shapes.
+
+    return shape * color;
+
+}
+
 ///--------------------------------------------------------------------------------
 /// Basic shapes.
 /// All shapes are white, on a black background.
@@ -179,20 +186,20 @@ vec3 screen(vec3 upperLayer, vec3 downLayer) {
 float circle(vec2 st, float radius) {
     /// Centered at (0.5, 0.5).
 
-    float distance = distance(st, vec2(0.5));
+    float d = distance(st, vec2(0.5));
 
     return 1.0 - smoothstep(radius - AA,
                          radius + AA,
-                         distance);
+                         d);
 
 }
 
 float gCircle(vec2 st, float radius) {
     /// Circular graident.
 
-    float distance = distance(st, vec2(0.5));
+    float d = distance(st, vec2(0.5));
 
-    return smoothstep(radius, 0.0, distance);
+    return smoothstep(radius, 0.0, d);
 }
 
 float quadrant(vec2 st, float radius, int position) {
@@ -201,21 +208,21 @@ float quadrant(vec2 st, float radius, int position) {
     /// Position 2: top-right
     /// Position 3: bottom-right
 
-    float distance;
+    float d;
 
     if(position == 0) {
-        distance = distance(st, vec2(0.0, 0.0));
+        d = distance(st, vec2(0.0, 0.0));
     } else if(position == 1) {
-        distance = distance(st, vec2(0.0, 1.0));
+        d = distance(st, vec2(0.0, 1.0));
     } else if(position == 2) {
-        distance = distance(st, vec2(1.0, 1.0));
+        d = distance(st, vec2(1.0, 1.0));
     } else {
-        distance = distance(st, vec2(1.0, 0.0));
+        d = distance(st, vec2(1.0, 0.0));
     }
 
     return 1.0 - smoothstep(radius - AA,
                          radius + AA,
-                         distance);
+                         d);
 }
 
 float irTriangle(vec2 st, int position) {
@@ -426,7 +433,8 @@ void main() {
     
 
     float circle2pct = circle(stf + 0.2, 0.25);
-    vec3 circle2 = vec3(0.0, circle2pct * 0.5, 0.0);
+    vec3 circle2 = vec3(circle2pct);
+    circle2 = tint(circle2, vec3(0.27, 0.37, 0.98));
 
     vec3 colorCircles = mask(circle1, circle2, 1.0 - circle2pct, 1.0);
     color = screen(circle1, circle2);
