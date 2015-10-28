@@ -426,6 +426,21 @@ float snoise01(vec2 v) {
 ///--------------------------------------------------------------------------------
 /// Scene 
 
+vec3 sun(vec2 st, vec2 center) {
+
+    vec3 sunColor = rgb(0.86, 0.84, 0.83) * 1.2;
+    float radius = 0.05;
+
+    float pct = circle(st, center, radius);
+    vec3 color = tint(pct, sunColor);
+
+    vec3 gradient = vec3(gCircle(st, center - vec2(0.0, radius * 0.3), radius * 0.95, radius * 1.2));
+    color -= gradient * 0.1;
+
+    return color;
+
+}
+
 vec3 earth(vec2 st) {
 
     vec2 center = vec2(0.5, 0.4);
@@ -502,10 +517,19 @@ void scene1(float startTime) {
 
     float time = u_time - startTime;
 
+    // Draw sun:
+    vec2 sunCenterStart = vec2(0.5, 0.5);
+    float sunTotalMileage = 0.2;
+    float sunTotalTime = 35.0;
+    float sunVelocity = sunTotalMileage / sunTotalTime;
+    vec2 sunCenter = vec2(sunCenterStart + vec2(0.0, sunVelocity * time));
+    vec3 sunImage = sun(stf, sunCenter);
+    color = sunImage;
+
     // Draw earth:
     vec3 earthImage = earth(stf);
     float earthMask = earthShape(stf);
-    color = earthImage;
+    color = mask(earthImage, color, earthMask, 1.0);
 
     // Draw moon:
     vec2 moonCenterStart = vec2(0.5, -0.4);
