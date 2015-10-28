@@ -199,9 +199,9 @@ vec3 tint(float shape, vec3 color) {
 
 }
 
-vec3 blackScene(float opacity) {
+vec3 blackScene() {
 
-    return 1.0 - vec3(opacity);
+    return vec3(0.0);
 
 }
 
@@ -440,14 +440,14 @@ vec3 sun(vec2 st, vec2 center) {
 
 vec3 halo(vec2 st, vec2 center, float radius) {
 
-    vec3 innerColor = vec3(1.0, 1.0, 1.0) * 0.6;
-    vec3 middleColor = vec3(1.0, 0.1, 0.1) * 0.2;
-    vec3 outterColor = vec3(0.5, 1.0, 0.5) * 0.1;
+    vec3 innerColor = vec3(1.0, 1.0, 1.0) * 0.7;
+    vec3 middleColor = vec3(1.0, 0.2, 0.2) * 0.3;
+    vec3 outterColor = vec3(0.5, 1.0, 0.5) * 0.12;
 
     float pct1 = gCircle(st, center, radius * 0.0, radius * 0.4);
     vec3 color1 = tint(pct1, innerColor);
 
-    float pct2 = gCircle(st, center, radius * 0.25, radius * 0.6);
+    float pct2 = gCircle(st, center, radius * 0.25, radius * 0.8);
     vec3 color2 = tint(pct2, middleColor);
 
     float pct3 = gCircle(st, center, radius * 0.5, radius * 1.0);
@@ -479,10 +479,19 @@ vec3 earth(vec2 st) {
     noise = vec3(snoise(relativePosition * 500.0));
     color = mask(noise, color, pct, 0.02);
 
-    vec3 gradient = vec3(gCircle(st, center - vec2(0.0, radius * 0.25), radius * 0.95, radius * 1.25));
-    color -= gradient * 0.9;
-
     return color;
+
+}
+
+vec3 earthGradient(vec2 st) {
+
+    vec2 center = vec2(0.5, 0.4);
+    float radius = 0.25;
+
+    vec3 gradient = vec3(gCircle(st, center - vec2(0.0, radius * 0.25), radius * 0.95, radius * 1.25));
+    gradient *= 0.9;
+
+    return gradient;
 
 }
 
@@ -535,38 +544,108 @@ void scene1(float startTime) {
 
     float time = u_time - startTime;
 
-    // Draw sun:
-    vec2 sunCenterStart = vec2(0.5, 0.5);
+    // Sun:
+    vec2 sunCenterStart = vec2(0.5, 0.55);
     float sunTotalMileage = 0.2;
     float sunTotalTime = 35.0;
     float sunVelocity = sunTotalMileage / sunTotalTime;
-    vec2 sunCenter = vec2(sunCenterStart + vec2(0.0, sunVelocity * time));
-    vec3 sunImage = sun(stf, sunCenter);
-    color = sunImage;
+    vec2 sunCenter = vec2(0.0);
 
-    // Draw earth:
-    vec3 earthImage = earth(stf);
-    float earthMask = earthShape(stf);
-    color = mask(earthImage, color, earthMask, 1.0);
+    // Earth:
 
-    // Draw halo:
+    // Halo:
     float haloRadiusStart = 0.05;
     float haloRadiusEnd = 0.3;
     float haloTotalTime = 35.0;
     float haloRadiusVelocity = (haloRadiusEnd - haloRadiusStart) / haloTotalTime;
-    float haloRadius = haloRadiusStart + haloRadiusVelocity * time;
-    vec3 haloImage = halo(stf, sunCenter, haloRadius);
-    color = screen(haloImage, color);
+    float haloRadius = 0.0;
 
-    // Draw moon:
+    // Moon:
     vec2 moonCenterStart = vec2(0.5, -0.4);
     float moonTotalMileage = 0.8;
     float moonTotalTime = 35.0;
     float moonVelocity = moonTotalMileage / moonTotalTime;
-    vec2 moonCenter = vec2(moonCenterStart - vec2(0.0, moonVelocity * time));
-    vec3 moonImage = moon(st, moonCenter);
-    float moonMask = moonShape(st, moonCenter);
-    color = mask(moonImage, color, moonMask, 1.0);
+    vec2 moonCenter = vec2(0.0);
+
+    if(time <= 36.0) {
+
+        // Sun:
+        sunCenter = vec2(sunCenterStart + vec2(0.0, sunVelocity * time));
+        vec3 sunImage = sun(st, sunCenter);
+        color = sunImage;
+
+        // Earth:
+        vec3 earthImage = earth(st);
+        float earthMask = earthShape(st);
+        color = mask(earthImage, color, earthMask, 1.0);
+
+        // Halo:
+        haloRadius = haloRadiusStart + haloRadiusVelocity * time;
+        vec3 haloImage = halo(st, sunCenter, haloRadius);
+        color = screen(haloImage, color);
+
+        // Earth Gradient:
+        vec3 earthGradientImage = earthGradient(st);
+        color -= earthGradientImage;
+
+        // Moon:
+        moonCenter = vec2(moonCenterStart - vec2(0.0, moonVelocity * time));
+        vec3 moonImage = moon(st, moonCenter);
+        float moonMask = moonShape(st, moonCenter);
+        color = mask(moonImage, color, moonMask, 1.0);
+
+    } else {
+
+        // Matrix manipulation:
+        float scaleVelocity = 3.0 / 4.0; // 3.0 times in 4.0 seconds
+        float scaleTime = time - 36.0 <= 40.0 ? time - 36.0 : 4.0;
+        scale(scaleVelocity * scaleTime);
+
+        // Sun:
+        sunCenter = vec2(sunCenterStart + vec2(0.0, sunVelocity * 36.0));
+        vec3 sunImage = sun(stf, sunCenter);
+        color = sunImage;
+
+        // Earth:
+        vec3 earthImage = earth(stf);
+        float earthMask = earthShape(stf);
+        color = mask(earthImage, color, earthMask, 1.0);
+
+        // Halo:
+        haloRadius = haloRadiusStart + haloRadiusVelocity * 36.0;
+        vec3 haloImage = halo(stf, sunCenter, haloRadius);
+        color = screen(haloImage, color);
+
+        // Earth Gradient:
+        vec3 earthGradientImage = earthGradient(stf);
+        color -= earthGradientImage;
+
+        // Fade in duplicates:
+        if(distance(sti, vec2(0.0, 0.0)) >= 0.001) { // Duplicates
+
+            float duplicatesFadeInTime = 4.0;
+            float duplicatesFadeInVelocity = 1.0 / duplicatesFadeInTime;
+            float duplicatesOpacity = duplicatesFadeInVelocity * (time - 36.0);
+            duplicatesOpacity = duplicatesOpacity <= 1.0 ? duplicatesOpacity : 1.0;
+
+            color *= duplicatesOpacity;
+
+        }
+
+    }
+
+
+    // Fade-in:
+    float blackSceneFadeInTime = 10.0;
+    float blackSceneFadeInVelocity = 1.0 / blackSceneFadeInTime;
+    float blackSceneOpacity = 1.0 - blackSceneFadeInVelocity * time;
+
+    if(blackSceneOpacity >= 0.0) {
+
+        vec3 blackScreen = blackScene();
+        color = blend(blackScreen, color, blackSceneOpacity);
+
+    }
 
 }
 
