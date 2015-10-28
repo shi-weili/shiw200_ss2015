@@ -171,6 +171,20 @@ vec3 screen(vec3 upperLayer, vec3 downLayer) {
 
 }
 
+vec3 rgb(int r, int g, int b) {
+    /// Return a vector float representation of the integer RGB color.
+
+    return vec3(float(r), float(g), float(b)) / 255.0;
+
+}
+
+vec3 rgb(float r, float g, float b) {
+    /// Return a vector representation of the RGB color.
+
+    return vec3(r, g, b);
+
+}
+
 vec3 tint(vec3 shape, vec3 color) {
     /// Tint white shape with color.
     /// Suitable for solid shapes.
@@ -179,14 +193,25 @@ vec3 tint(vec3 shape, vec3 color) {
 
 }
 
+vec3 tint(float shape, vec3 color) {
+
+    return vec3(shape) * color;
+
+}
+
+vec3 blackScene(float opacity) {
+
+    return 1.0 - vec3(opacity);
+
+}
+
 ///--------------------------------------------------------------------------------
 /// Basic shapes.
 /// All shapes are white, on a black background.
 
-float circle(vec2 st, float radius) {
-    /// Centered at (0.5, 0.5).
+float circle(vec2 st, vec2 center, float radius) {
 
-    float d = distance(st, vec2(0.5));
+    float d = distance(st, center);
 
     return 1.0 - smoothstep(radius - AA,
                          radius + AA,
@@ -194,12 +219,27 @@ float circle(vec2 st, float radius) {
 
 }
 
-float gCircle(vec2 st, float radius) {
+float circle(vec2 st, float radius) {
+    /// Centered at (0.5, 0.5).
+
+    return circle(st, vec2(0.5), radius);
+
+}
+
+float gCircle(vec2 st, vec2 center, float startDistance, float endDistance) {
     /// Circular graident.
 
-    float d = distance(st, vec2(0.5));
+    float d = distance(st, center);
 
-    return smoothstep(radius, 0.0, d);
+    return smoothstep(endDistance, startDistance, d);
+
+}
+
+float gCircle(vec2 st, float startDistance, float endDistance) {
+    /// Centered at (0.5, 0.5).
+
+    return gCircle(st, vec2(0.5), startDistance, endDistance);
+
 }
 
 float quadrant(vec2 st, float radius, int position) {
@@ -383,6 +423,53 @@ float snoise01(vec2 v) {
 
 }
 
+///--------------------------------------------------------------------------------
+/// Scene 
+
+vec3 moon(vec2 st, vec2 center) {
+
+    vec3 moonColor = rgb(0.03, 0.05, 0.10) * 0.9;
+    float radius = 1.2;
+
+    float pct = circle(st, center, radius);
+    vec3 color = tint(pct, moonColor);
+
+    vec2 relativePosition = st - center;
+
+    vec3 noise = vec3(snoise(relativePosition * 5.0));
+    color = mask(noise, color, pct, 0.015);
+
+    noise = vec3(snoise(relativePosition * 50.0));
+    color = mask(noise, color, pct, 0.01);
+
+    noise = vec3(snoise(relativePosition * 150.0));
+    color = mask(noise, color, pct, 0.015);
+
+    noise = vec3(snoise(relativePosition * 500.0));
+    color = mask(noise, color, pct, 0.02);
+
+    vec3 gradient = vec3(gCircle(st, center - vec2(0.0, radius * 0.3), radius * 0.95, radius * 1.2));
+    color -= gradient * 0.1;
+
+    return color;
+
+}
+
+void scene1(float startTime) {
+
+    float time = u_time - startTime;
+
+    
+
+    // Draw moon:
+    vec2 moonCenterStart = vec2(0.5, -0.4);
+    float moonTotalMileage = 0.8;
+    float moonTotalTime = 35.0;
+    float moonVelocity = moonTotalMileage / moonTotalTime;
+    color = moon(st, moonCenterStart - vec2(0.0, moonVelocity * time));
+
+}
+
 
 ///--------------------------------------------------------------------------------
 
@@ -418,26 +505,23 @@ void main() {
     
     // shift(0.5, 0.0);
     // scale(5.0);
-    scale(3.0);
+    // scale(3.0);
     // rotate(u_time);
     // shift(0.5, 0.0);
     // scale(100.0 * sin(u_time * 2.0));
     // shift(u_time / 1.0, 0.0);
     // scale(3.0);
 
+    // float circle1pct = gCircle(stf, 0.25);
+    // circle1pct = gCircle(stf, 0.1, 0.25);
+    // vec3 circle1 = vec3(circle1pct, 0.0, 0.0);
 
-    
+    // float circle2pct = circle(stf + 0.2, 0.25);
+    // vec3 circle2 = vec3(circle2pct);
+    // circle2 = tint(circle2, vec3(0.27, 0.37, 0.98));
 
-    float circle1pct = gCircle(stf, 0.25);
-    vec3 circle1 = vec3(circle1pct, 0.0, 0.0);
-    
-
-    float circle2pct = circle(stf + 0.2, 0.25);
-    vec3 circle2 = vec3(circle2pct);
-    circle2 = tint(circle2, vec3(0.27, 0.37, 0.98));
-
-    vec3 colorCircles = mask(circle1, circle2, 1.0 - circle2pct, 1.0);
-    color = screen(circle1, circle2);
+    // vec3 colorCircles = mask(circle1, circle2, 1.0 - circle2pct, 1.0);
+    // color = screen(circle1, circle2);
 
     // float maskPct = circle(mStf, 0.40);
     // maskPct = polygon(mStf, 0.5, 3);
@@ -450,6 +534,8 @@ void main() {
     // color = vec3(halfSquare(stf, int(snoise01(u_time * 1.0 + sti) * 4.0)));
     // color = vec3(halfSquare(stf, int(random(u_time / 1000000.0 + sti) * 4.0)));
     // color = vec3(polygon(stf, 0.4, 20));
+
+    scene1(0.0);
 
     gl_FragColor = vec4(color, 1.0);
 
