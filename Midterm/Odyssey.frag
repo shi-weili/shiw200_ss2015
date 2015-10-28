@@ -31,6 +31,7 @@ vec2 mDrift = vec2(0.0);
 float mScaleFactor = 1.0;
 float mRotation = 0.0;
 vec3 mColor = vec3(0.0);
+float mPct = 0.0;
 
 ///--------------------------------------------------------------------------------
 /// Matrix manipulation.
@@ -818,11 +819,34 @@ vec3 scene3(float startTime) {
     vec3 color = vec3(0.0);
 
     
-    // scale(100.0 * sin(u_time * 2.0));
-    scale(100.0);
+    // Draw background:
+    scale(150.0);
+    color = vec3(quadrant(stf, 0.5, int(snoise01(time * 1.0 + sti * PI) * 4.0)) );
 
-    color = vec3(quadrant(stf, 0.5, int(snoise01(time * 1.0 + sti) * 4.0)) );
+    if(time <= 1.0) {
 
+        scaleMask(3.0);
+
+    } else {
+        float maskScaleStart = 3.0;
+        float maskSacleEnd = 0.3;
+        float maskSacleStartTime = 1.0;
+        float maskScaleEndTime = 19.0;
+        float maskScaleVelocity = (maskSacleEnd - maskScaleStart) / (maskScaleEndTime - maskSacleStartTime);
+        float maskScale = maskScaleStart + maskScaleVelocity * (time - maskSacleStartTime);
+        if(maskScale < maskSacleEnd) {
+            maskScale = maskSacleEnd;
+        }
+        scaleMask(maskScale);
+
+    }
+
+    // Draw mask:
+    mPct = circle(mStf, 0.4);
+    mColor = vec3(0.0);
+    color = mask(color, mColor, mPct, 1.0);
+
+    // scale(sin(u_time * 2.0));
 
 
     return color;
@@ -910,7 +934,7 @@ void main() {
 
         color = blend(color3, color2, opacity);
 
-    } else if(time <= 108.0) {
+    } else if(time <= 100.0) {
 
         vec3 color3 = scene3(59.0);
         color = color3;
@@ -920,7 +944,7 @@ void main() {
         vec3 color3 = scene3(59.0);
         vec3 blackScreen = blackScene();
 
-        float fadeInTime = 5.0;
+        float fadeInTime = 10.0;
         float fadeInVelocity = 1.0 / fadeInTime;
         float opacity = fadeInVelocity * (time - 108.0);
         opacity = opacity <= 1.0 ? opacity : 1.0;
