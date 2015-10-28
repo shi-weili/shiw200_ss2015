@@ -5,7 +5,7 @@ obj/
 Debug*/
 Release*/
 *.mode*
-*.app/
+# *.app/
 *.pyc
 .svn/
 
