@@ -12,7 +12,7 @@ precision mediump float;
 uniform vec2 u_resolution;
 uniform float u_time;
 
-float time = u_time + 66.0;
+float time = u_time + 0.0;
 
 // Global variables for coordinates and color:
 vec2 st = vec2(0.0);
@@ -820,8 +820,17 @@ vec3 scene3(float startTime) {
 
     
     // Draw background:
-    scale(150.0);
-    color = vec3(quadrant(stf, 0.5, int(snoise01(time * 1.0 + sti * PI) * 4.0)) );
+    if(time < 19.0) { // Draw quadrants.
+
+        scale(150.0);
+        color = vec3(quadrant(stf, 0.5, int(snoise01(time * 1.0 + sti * PI) * 4.0)));
+
+    } else { // Draw circles.
+
+        scale(150.0 * sin((time - 19.0 + (PI / 2.0)) * 1.0));
+        color = vec3(circle(stf, 0.25));
+
+    }
 
     // Scale mask:
     if(time <= 1.0) {
@@ -833,7 +842,7 @@ vec3 scene3(float startTime) {
         float maskScaleStart = 3.0;
         float maskSacleEnd = 0.1;
         float maskSacleStartTime = 1.0;
-        float maskScaleEndTime = 19.0;
+        float maskScaleEndTime = 25.0;
         float maskScaleVelocity = (maskSacleEnd - maskScaleStart) / (maskScaleEndTime - maskSacleStartTime);
         float maskScale = maskScaleStart + maskScaleVelocity * (time - maskSacleStartTime);
         if(maskScale < maskSacleEnd) {
@@ -882,9 +891,6 @@ vec3 scene3(float startTime) {
     // Draw mask:
     mColor = vec3(0.0);
     color = mask(color, mColor, mPct, 1.0);
-
-    // scale(sin(u_time * 2.0));
-
 
     return color;
 
