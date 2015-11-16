@@ -473,7 +473,7 @@ void main() {
 
     if(t <= halfCircle) {
 
-        gridScale *= 4.0 - sin(t / halfCircle * PI / 2.0) * 3.0;
+        gridScale *= 3.0 - sin(t / halfCircle * PI / 2.0) * 2.0;
         // gridScale *= 1.0 - tan(t / halfCircle * PI / 2.0 - PI / 2.0);
 
     } else {
