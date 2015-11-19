@@ -468,7 +468,7 @@ void main() {
     float cellScaleFactor = 1.0;
     float cellScaleCircle = 0.8;    // in seconds
 
-    float cellRadius;
+    float cellRadius =  0.0;
 
     float t = mod(time, cellScaleCircle) / cellScaleCircle;
 
