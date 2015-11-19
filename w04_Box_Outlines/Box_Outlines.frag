@@ -6,7 +6,7 @@
 precision mediump float;
 #endif
 
-#define AA 0.00    // Anti-aliasing factor
+#define AA 0.002    // Anti-aliasing factor
 #define PI 3.14159265359
 
 uniform vec2 u_resolution;
@@ -381,6 +381,18 @@ float box(vec2 st, float sizeX, float sizeY) {
 
     return smoothstep(-sizeX / 2.0 - AA, -sizeX / 2.0 + AA, st.x) * (1.0 - smoothstep(sizeX / 2.0 -  AA, sizeX / 2.0 + AA, st.x))
             * smoothstep(-sizeY / 2.0 - AA, -sizeY / 2.0 + AA, st.y) * (1.0 - smoothstep(sizeY / 2.0 - AA, sizeY / 2.0 + AA, st.y));
+
+}
+
+float boxOutline(vec2 st, float sizeX, float sizeY, float lineWidth) {
+
+    lineWidth /= 2.0;
+
+    float outerBox = box(st, sizeX + lineWidth, sizeY + lineWidth);
+    float innerBox = box(st, sizeX - lineWidth, sizeY - lineWidth);
+
+    return outerBox * (1.0 - innerBox);
+
 }
 
 float cross(vec2 st, float size){
@@ -490,11 +502,14 @@ void main() {
     /// The coordinate of the center of the window/main scene is (0.5, 0.5).
     /// When drawing using stf, the scence ranges from (0.0, 0.0) to (1.0, 1.0).
 
-    shift(vec2(0.0, snoise(vec2(st.x * 20.0, 0.0) + time * 10.0) * pow(snoise01(vec2(time * 0.8)), 5.0) * 0.2));
+    for(int i = 0; i <= 10; i++) {
 
-    float shape = box(stf, 1.0, 0.007);
+        float size = float(i) * 0.1;
 
-    color = vec3(shape * 0.7 + 0.2, 0.2, shape + 0.2);
+        float shape = boxOutline(st, size, size, 0.099);
+        color = mask(vec3(shape), color, shape, 1.0 - size);
+
+    }
 
     gl_FragColor = vec4(color, 1.0);
 

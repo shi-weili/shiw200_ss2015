@@ -6,7 +6,7 @@
 precision mediump float;
 #endif
 
-#define AA 0.00    // Anti-aliasing factor
+#define AA 0.0002    // Anti-aliasing factor
 #define PI 3.14159265359
 
 uniform vec2 u_resolution;
@@ -381,6 +381,18 @@ float box(vec2 st, float sizeX, float sizeY) {
 
     return smoothstep(-sizeX / 2.0 - AA, -sizeX / 2.0 + AA, st.x) * (1.0 - smoothstep(sizeX / 2.0 -  AA, sizeX / 2.0 + AA, st.x))
             * smoothstep(-sizeY / 2.0 - AA, -sizeY / 2.0 + AA, st.y) * (1.0 - smoothstep(sizeY / 2.0 - AA, sizeY / 2.0 + AA, st.y));
+
+}
+
+float boxOutline(vec2 st, float sizeX, float sizeY, float lineWidth) {
+
+    lineWidth /= 2.0;
+
+    float outerBox = box(st, sizeX + lineWidth, sizeY + lineWidth);
+    float innerBox = box(st, sizeX - lineWidth, sizeY - lineWidth);
+
+    return outerBox * (1.0 - innerBox);
+
 }
 
 float cross(vec2 st, float size){
@@ -481,6 +493,15 @@ float snoise01(vec2 v) {
 
 ///--------------------------------------------------------------------------------
 
+float modrianBox(vec2 st, float upperLeftX, float upperLeftY, float lowerRightX, float lowerRightY, float edgeWidth) {
+
+    return smoothstep(upperLeftX + edgeWidth - AA, upperLeftX + edgeWidth + AA, st.x) 
+            * (1.0 - smoothstep(lowerRightX - edgeWidth - AA, lowerRightX - edgeWidth + AA, st.x))
+            * (1.0 - smoothstep(lowerRightY - edgeWidth - AA, lowerRightY - edgeWidth + AA, st.y)) 
+            * (smoothstep(upperLeftY + edgeWidth - AA, upperLeftY + edgeWidth + AA, st.y));
+
+}
+
 void main() {
 
     prepareCoordiantes();
@@ -490,12 +511,89 @@ void main() {
     /// The coordinate of the center of the window/main scene is (0.5, 0.5).
     /// When drawing using stf, the scence ranges from (0.0, 0.0) to (1.0, 1.0).
 
-    shift(vec2(0.0, snoise(vec2(st.x * 20.0, 0.0) + time * 10.0) * pow(snoise01(vec2(time * 0.8)), 5.0) * 0.2));
+    st.y = 1.0 - st.y;
 
-    float shape = box(stf, 1.0, 0.007);
+    vec3 red = vec3(1.0, 0.0, 0.0);
+    vec3 yellow = vec3(1.0, 1.0, 0.0);
+    vec3 blue = vec3(0.0, 0.0, 1.0);
+    vec3 white = vec3(1.0);
 
-    color = vec3(shape * 0.7 + 0.2, 0.2, shape + 0.2);
+    float edgeWidth = 0.01;
 
+    float x[4];
+    float y[5];
+
+    float wiggleSpeed = 0.2;
+    float wiggleRange = 0.05;
+
+    x[0] = 0.0 + edgeWidth;
+    x[1] = 0.3 + snoise(vec2(time * wiggleSpeed, 0.0)) * wiggleRange;
+    x[2] = 0.75 + snoise(vec2(time * wiggleSpeed, 100.0)) * wiggleRange;
+    x[3] = 1.0 - edgeWidth;
+
+    y[0] = 0.0 + edgeWidth;
+    y[1] = 0.2 + snoise(vec2(time * wiggleSpeed, 200.0)) * wiggleRange;
+    y[2] = 0.6 + snoise(vec2(time * wiggleSpeed, 300.0)) * wiggleRange;
+    y[3] = 0.8 + snoise(vec2(time * wiggleSpeed, 400.0)) * wiggleRange;
+    y[4] = 1.0 - edgeWidth;
+
+    float shape[7];
+
+    shape[0] = modrianBox(st, x[0], y[0], x[1], y[1], edgeWidth);
+    shape[1] = modrianBox(st, x[0], y[0], x[1], y[2], edgeWidth);
+    shape[2] = modrianBox(st, x[1], y[0], x[3], y[2], edgeWidth);
+    shape[3] = modrianBox(st, x[0], y[2], x[1], y[4], edgeWidth);
+    shape[4] = modrianBox(st, x[1], y[2], x[2], y[4], edgeWidth);
+    shape[5] = modrianBox(st, x[2], y[2], x[3], y[3], edgeWidth);
+    shape[6] = modrianBox(st, x[2], y[3], x[3], y[4], edgeWidth);
+
+    for(int i = 0; i <= 6; i++) {
+
+        color = paste(vec3(shape[i]), color);
+
+    }
+
+    float colorCircle = 15.0;
+    float t = mod(time, colorCircle);
+
+    if(t < 4.0) {
+
+        color = paste(tint(shape[2], red), color);
+        color = paste(tint(shape[3], yellow), color);
+        color = paste(tint(shape[6], blue), color);
+
+    } else if(t < 5.0) {
+
+        color = paste(tint(shape[2], mix(red, yellow, t - 4.0)), color);
+        color = paste(tint(shape[3], mix(yellow, blue, t - 4.0)), color);
+        color = paste(tint(shape[6], mix(blue, red, t - 4.0)), color);
+
+    } else if(t < 9.0) {
+
+        color = paste(tint(shape[2], yellow), color);
+        color = paste(tint(shape[3], blue), color);
+        color = paste(tint(shape[6], red), color);
+
+    } else if(t < 10.0) {
+
+        color = paste(tint(shape[2], mix(yellow, blue, t - 9.0)), color);
+        color = paste(tint(shape[3], mix(blue, red, t - 9.0)), color);
+        color = paste(tint(shape[6], mix(red, yellow, t - 9.0)), color);
+
+    } else if(t < 14.0) {
+
+        color = paste(tint(shape[2], blue), color);
+        color = paste(tint(shape[3], red), color);
+        color = paste(tint(shape[6], yellow), color);
+
+    } else if(t < 15.0) {
+
+        color = paste(tint(shape[2], mix(blue, red, t - 14.0)), color);
+        color = paste(tint(shape[3], mix(red, yellow, t - 14.0)), color);
+        color = paste(tint(shape[6], mix(yellow, blue, t - 14.0)), color);
+
+    }
+    
     gl_FragColor = vec4(color, 1.0);
 
 }

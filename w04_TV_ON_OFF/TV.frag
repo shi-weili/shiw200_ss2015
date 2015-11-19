@@ -6,7 +6,7 @@
 precision mediump float;
 #endif
 
-#define AA 0.00    // Anti-aliasing factor
+#define AA 0.002    // Anti-aliasing factor
 #define PI 3.14159265359
 
 uniform vec2 u_resolution;
@@ -381,6 +381,7 @@ float box(vec2 st, float sizeX, float sizeY) {
 
     return smoothstep(-sizeX / 2.0 - AA, -sizeX / 2.0 + AA, st.x) * (1.0 - smoothstep(sizeX / 2.0 -  AA, sizeX / 2.0 + AA, st.x))
             * smoothstep(-sizeY / 2.0 - AA, -sizeY / 2.0 + AA, st.y) * (1.0 - smoothstep(sizeY / 2.0 - AA, sizeY / 2.0 + AA, st.y));
+
 }
 
 float cross(vec2 st, float size){
@@ -490,11 +491,70 @@ void main() {
     /// The coordinate of the center of the window/main scene is (0.5, 0.5).
     /// When drawing using stf, the scence ranges from (0.0, 0.0) to (1.0, 1.0).
 
-    shift(vec2(0.0, snoise(vec2(st.x * 20.0, 0.0) + time * 10.0) * pow(snoise01(vec2(time * 0.8)), 5.0) * 0.2));
 
-    float shape = box(stf, 1.0, 0.007);
+    // Upper Layer:
 
-    color = vec3(shape * 0.7 + 0.2, 0.2, shape + 0.2);
+    float baseRadius = 6.0;
+    float maxGlow = 1.0;
+    float glowTime = mod(time * 3.0, 6.0 * PI);
+    float glow;
+
+    if(glowTime < 0.5 * PI) {
+
+        glow = cos(glowTime) * maxGlow;
+
+    } else if(glowTime < 3.5 * PI) {
+
+        glow = 0.0001;
+
+    } else if(glowTime < 4.0 * PI) {
+
+        glow = cos(glowTime) * maxGlow;
+
+    } else {
+
+        glow = maxGlow;
+
+    }
+
+    shift(0.0, baseRadius);
+    float downCycle = gCircle(st, baseRadius, baseRadius + glow);
+
+    prepareCoordiantes();
+    shift(0.0, -baseRadius);
+    float upCycle = gCircle(st, baseRadius, baseRadius + glow);
+
+    vec3 upperLayer = vec3(downCycle * upCycle);
+
+    // Down Layer:
+
+    prepareCoordiantes();
+    scale(200.0);
+    vec3 downLayer = vec3(quadrant(stf, 0.5, int(snoise01(time * 1.0 + sti * PI) * 4.0)));
+
+    // Blend:
+
+    float upperLayerOpacity;
+
+    if(glowTime < 0.5 * PI) {
+
+        upperLayerOpacity = smoothstep(0.0, 1.0, 1.0 - (0.5 * PI - glowTime) / (0.5 * PI));
+
+    } else if(glowTime < 3.5 * PI) {
+
+        upperLayerOpacity = 1.0;
+
+    } else if(glowTime < 4.0 * PI) {
+
+        upperLayerOpacity = smoothstep(1.0, 0.0, 1.0 - (4.0 * PI - glowTime) / (0.5 * PI));
+
+    } else {
+
+        upperLayerOpacity = 0.0;
+
+    }
+
+    color = blend(upperLayer, downLayer, upperLayerOpacity);
 
     gl_FragColor = vec4(color, 1.0);
 
