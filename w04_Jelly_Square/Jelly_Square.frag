@@ -492,7 +492,7 @@ void main() {
     /// When drawing using stf, the scence ranges from (0.0, 0.0) to (1.0, 1.0).
 
     shift(-0.5, -0.5);
-    shift(pow(snoise(vec2((st.y * 0.5 + time * 1.5), 0.0)), 3.0) * (st.y + 0.5) * 0.1, 0.0);
+    shift(pow(snoise(vec2((st.y * 0.5 + time * 1.5), 0.0)), 3.0) * (st.y + 0.5) * 0.15, 0.0);
 
     float sizeX = 0.5;
     float sizeY = 0.5;
