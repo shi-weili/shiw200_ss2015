@@ -500,6 +500,7 @@ void main() {
     float angle = atan((st - vec2(0.5)).y, (st - vec2(0.5)).x);
 
     float radiusVariation = snoise(vec2(sin(angle), cos(angle)) * 0.3 + time * 0.5) * 0.2;
+    // float radiusVariation = snoise(vec2(angle, angle) * 0.3 + time * 0.5) * 0.2;
     radiusVariation *= clamp(sin(t * PI * 2.0), 0.0, 0.9) + 0.1;
 
     float radius = cellRadius * (1.0 + radiusVariation);
