@@ -6,7 +6,7 @@
 precision mediump float;
 #endif
 
-#define AA 0.00    // Anti-aliasing factor
+#define AA 0.002    // Anti-aliasing factor
 #define PI 3.14159265359
 
 uniform vec2 u_resolution;
