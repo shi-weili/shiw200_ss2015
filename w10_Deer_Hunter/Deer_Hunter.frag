@@ -537,8 +537,8 @@ void main() {
     telescopicSight.g = texture2D(u_tex0, st + telescopeShift * 0.5).g;
     telescopicSight.r = texture2D(u_tex0, st + telescopeShift).r;
 
-    float blurRadius = smoothstep(0.0, 0.707, distance(mouse, vec2(0.5, 0.5))) * 0.1;
-    vec4 background = blur(st - telescopeShift * 0.15, u_tex1, 0.002, blurRadius);
+    float blurRadius = smoothstep(0.0, 0.707, distance(mouse, vec2(0.5, 0.5))) * 0.02;
+    vec4 background = blur(st - telescopeShift * 0.15, u_tex1, 0.001, blurRadius);
     float circularMask = 1.0 - circle(st, 0.48);
     background -= vec4(circularMask);
 
