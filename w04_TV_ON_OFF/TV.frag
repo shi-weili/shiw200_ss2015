@@ -496,7 +496,7 @@ void main() {
 
     float baseRadius = 6.0;
     float maxGlow = 1.0;
-    float glowTime = mod(time * 3.0, 6.0 * PI);
+    float glowTime = mod(time * 4.0, 6.0 * PI);
     float glow;
 
     if(glowTime < 0.5 * PI) {
